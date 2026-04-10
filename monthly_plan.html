@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script>
+        if (sessionStorage.getItem('sundo_auth') !== 'true') {
+            alert("🔒 정상적인 로그인이 필요합니다!");
+            window.location.replace("index.html");
+        }
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUNDOCHEM 월간계획표</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; background-color: #0b1120; color: #e2e8f0; }
+        .board-container { background-color: #1e293b; border: 4px solid #3b82f6; border-radius: 12px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), inset 0 0 10px rgba(0,0,0,0.5); }
+        .grid-cell { border: 1px solid #334155; background-color: #0f172a; transition: background-color 0.2s; position: relative; }
+        .grid-cell:hover { background-color: #1e293b; }
+        textarea { resize: none; width: 100%; height: 100%; background: transparent; outline: none; font-size: 14px; line-height: 1.5; padding: 4px; font-weight: bold; }
+        textarea:focus { background-color: rgba(59, 130, 246, 0.1); }
+        .date-badge { position: absolute; top: 4px; left: 4px; border: 1px solid #475569; padding: 2px 6px; font-weight: 900; font-size: 12px; color: #94a3b8; border-radius: 4px; }
+        .sunday .date-badge { color: #f43f5e; border-color: rgba(244, 63, 94, 0.5); }
+        .saturday .date-badge { color: #3b82f6; border-color: rgba(59, 130, 246, 0.5); }
+        .today .date-badge { background-color: #eab308; color: #000; border-color: #eab308; box-shadow: 0 0 8px rgba(234, 179, 8, 0.8); }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #0f172a; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body class="p-6 h-screen flex flex-col">
+
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-4">
+            <i class="fas fa-calendar-alt text-4xl text-blue-500"></i>
+            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 tracking-widest drop-shadow-md">월중행사 및 계획표</h1>
+        </div>
+        
+        <div class="flex items-center gap-6 bg-slate-800 px-6 py-2 rounded-full border border-slate-600 shadow-inner">
+            <button id="prev-month" class="text-slate-400 hover:text-white transition"><i class="fas fa-chevron-left text-2xl"></i></button>
+            <h2 id="month-display" class="text-3xl font-black text-amber-300 w-[250px] text-center tracking-widest whitespace-nowrap">2026년 04월</h2>
+            <button id="next-month" class="text-slate-400 hover:text-white transition"><i class="fas fa-chevron-right text-2xl"></i></button>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded border border-slate-600 shadow-inner">
+                <span class="text-slate-400 text-sm font-bold mr-1">글자색:</span>
+                <button class="color-btn w-6 h-6 rounded-full bg-[#f8fafc] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#f8fafc" title="기본(흰색)"></button>
+                <button class="color-btn w-6 h-6 rounded-full bg-[#f43f5e] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#f43f5e" title="빨간색 (중요/휴가)"></button>
+                <button class="color-btn w-6 h-6 rounded-full bg-[#f59e0b] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#f59e0b" title="노란색 (주의/점검)"></button>
+                <button class="color-btn w-6 h-6 rounded-full bg-[#10b981] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#10b981" title="초록색 (정상/완료)"></button>
+                <button class="color-btn w-6 h-6 rounded-full bg-[#3b82f6] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#3b82f6" title="파란색 (회의/공지)"></button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition"><i class="fas fa-print mr-2"></i>인쇄</button>
+                <button onclick="window.close()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded border border-rose-500 font-bold transition"><i class="fas fa-times mr-2"></i>닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="board-container flex-1 flex flex-col p-2 gap-2 overflow-hidden">
+        <div class="flex gap-2 h-16">
+            <div class="w-[200px] bg-slate-800 border-2 border-yellow-500/50 rounded flex items-center shadow-inner relative overflow-hidden">
+                <div class="bg-yellow-500/20 text-yellow-400 font-black text-sm h-full flex flex-col justify-center items-center px-2 text-center leading-tight border-r border-yellow-500/50 shrink-0">
+                    <span>다음달</span><span>주요</span><span>행사</span>
+                </div>
+                <textarea id="next-month-events" class="flex-1 p-2 text-sm" placeholder="행사 내용을 입력하세요..."></textarea>
+            </div>
+            <div class="flex-1 grid grid-cols-7 gap-2">
+                <div class="bg-rose-900/30 border border-rose-800/50 rounded flex justify-center items-center font-black text-rose-400 tracking-widest">일 · SUN</div>
+                <div class="bg-slate-800 border border-slate-700 rounded flex justify-center items-center font-black text-slate-300 tracking-widest">월 · MON</div>
+                <div class="bg-slate-800 border border-slate-700 rounded flex justify-center items-center font-black text-slate-300 tracking-widest">화 · TUE</div>
+                <div class="bg-slate-800 border border-slate-700 rounded flex justify-center items-center font-black text-slate-300 tracking-widest">수 · WED</div>
+                <div class="bg-slate-800 border border-slate-700 rounded flex justify-center items-center font-black text-slate-300 tracking-widest">목 · THU</div>
+                <div class="bg-slate-800 border border-slate-700 rounded flex justify-center items-center font-black text-slate-300 tracking-widest">금 · FRI</div>
+                <div class="bg-blue-900/30 border border-blue-800/50 rounded flex justify-center items-center font-black text-blue-400 tracking-widest">토 · SAT</div>
+            </div>
+        </div>
+
+        <div id="calendar-grid" class="flex-1 grid grid-cols-7 gap-2"></div>
+
+        <div class="h-20 bg-slate-800 border-2 border-emerald-500/50 rounded flex shadow-inner relative overflow-hidden mt-1">
+            <div class="bg-emerald-500/20 text-emerald-400 font-black text-base h-full flex flex-col justify-center items-center px-6 text-center tracking-widest border-r border-emerald-500/50 shrink-0">
+                비 고 <span class="text-xs font-bold text-emerald-500">REMARKS</span>
+            </div>
+            <textarea id="remarks-input" class="flex-1 p-3 text-base" placeholder="월간 전체 비고 및 전달사항을 입력하세요..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
+            authDomain: "sundochem-dashboard.firebaseapp.com",
+            databaseURL: "https://sundochem-dashboard-default-rtdb.firebaseio.com",
+            projectId: "sundochem-dashboard",
+            storageBucket: "sundochem-dashboard.firebasestorage.app",
+            messagingSenderId: "360796635566",
+            appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let cloudData = {}; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentDate = new Date(); 
+            let activeTextarea = null; 
+            
+            const monthDisplay = document.getElementById('month-display');
+            const calendarGrid = document.getElementById('calendar-grid');
+            const nextMonthEventsInput = document.getElementById('next-month-events');
+            const remarksInput = document.getElementById('remarks-input');
+
+            document.addEventListener('focusin', (e) => { if (e.target.tagName === 'TEXTAREA') activeTextarea = e.target; });
+
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!activeTextarea || !e.isTrusted) return; 
+                    const selectedColor = e.target.getAttribute('data-color');
+                    activeTextarea.style.color = selectedColor; 
+                    db.ref('calendar/' + activeTextarea.id).update({ color: selectedColor });
+                });
+            });
+
+            function renderCalendar() {
+                calendarGrid.innerHTML = ''; 
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                monthDisplay.textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월`;
+
+                const firstDayIndex = new Date(year, month, 1).getDay();
+                const lastDate = new Date(year, month + 1, 0).getDate();
+                const prevLastDate = new Date(year, month, 0).getDate();
+                const today = new Date();
+                const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+                const monthKey = `plan_${year}_${month + 1}`; 
+                
+                for (let i = firstDayIndex; i > 0; i--) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell rounded opacity-30 cursor-not-allowed';
+                    cell.innerHTML = `<span class="date-badge">${prevLastDate - i + 1}</span>`;
+                    calendarGrid.appendChild(cell);
+                }
+
+                for (let day = 1; day <= lastDate; day++) {
+                    const cell = document.createElement('div');
+                    const dayOfWeek = new Date(year, month, day).getDay();
+                    let dayClass = 'grid-cell rounded flex flex-col pt-7 px-1 pb-1';
+                    if (dayOfWeek === 0) dayClass += ' sunday';
+                    if (dayOfWeek === 6) dayClass += ' saturday';
+                    if (isCurrentMonth && day === today.getDate()) dayClass += ' today';
+                    cell.className = dayClass;
+
+                    const cellId = `${monthKey}_day_${day}`;
+                    const savedText = cloudData[cellId] ? cloudData[cellId].text : '';
+                    const savedColor = cloudData[cellId] ? cloudData[cellId].color : '#f8fafc'; 
+
+                    cell.innerHTML = `
+                        <span class="date-badge">${day}</span>
+                        <textarea id="${cellId}" class="flex-1" style="color: ${savedColor};" placeholder="...">${savedText}</textarea>
+                    `;
+                    
+                    const textarea = cell.querySelector('textarea');
+                    textarea.addEventListener('input', (e) => {
+                        if(e.isTrusted) {
+                            const color = textarea.style.color || '#f8fafc';
+                            db.ref('calendar/' + cellId).set({ text: e.target.value, color: color });
+                        }
+                    });
+                    calendarGrid.appendChild(cell);
+                }
+
+                const totalCells = firstDayIndex + lastDate;
+                const remainingCells = (Math.ceil(totalCells / 7) * 7) - totalCells;
+                for (let i = 1; i <= remainingCells; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell rounded opacity-30 cursor-not-allowed';
+                    cell.innerHTML = `<span class="date-badge">${i}</span>`;
+                    calendarGrid.appendChild(cell);
+                }
+
+                const nextId = `${monthKey}_next_events`;
+                const remarkId = `${monthKey}_remarks`;
+                
+                nextMonthEventsInput.id = nextId;
+                remarksInput.id = remarkId;
+
+                nextMonthEventsInput.value = cloudData[nextId] ? cloudData[nextId].text : '';
+                nextMonthEventsInput.style.color = cloudData[nextId] ? cloudData[nextId].color : '#fef08a'; 
+                remarksInput.value = cloudData[remarkId] ? cloudData[remarkId].text : '';
+                remarksInput.style.color = cloudData[remarkId] ? cloudData[remarkId].color : '#a7f3d0'; 
+
+                nextMonthEventsInput.oninput = (e) => { if(e.isTrusted) db.ref('calendar/' + nextId).set({ text: e.target.value, color: e.target.style.color }); }
+                remarksInput.oninput = (e) => { if(e.isTrusted) db.ref('calendar/' + remarkId).set({ text: e.target.value, color: e.target.style.color }); }
+            }
+
+            renderCalendar();
+
+            db.ref('calendar').on('value', snapshot => {
+                cloudData = snapshot.val() || {};
+                document.querySelectorAll('textarea').forEach(textarea => {
+                    const id = textarea.id;
+                    if (cloudData[id] && document.activeElement !== textarea) {
+                        textarea.value = cloudData[id].text || '';
+                        textarea.style.color = cloudData[id].color || '#f8fafc';
+                    }
+                });
+            });
+
+            document.getElementById('prev-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
+            document.getElementById('next-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
+        });
+    </script>
+</body>
+</html>
