@@ -1,4 +1,4 @@
-// 💡 1. Firebase 설정 (창우님 API 키 적용!)
+// 💡 1. Firebase 설정 (창우님의 프로젝트 API 키 완벽 적용!)
 const firebaseConfig = {
   apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
   authDomain: "sundochem-dashboard.firebaseapp.com",
@@ -12,7 +12,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 플립 시계
+  // 1. 실시간 플립 시계
   function updateFlipClock() {
     const now = new Date();
     const utc = now.getTime() + now.getTimezoneOffset() * 60000;
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateFlipClock();
   setInterval(updateFlipClock, 1000);
 
-  // 수율 및 가스순도 UI
+  // 2. 수율 및 가스순도 링 애니메이션
   function setupDynamicRing(inputId, ringId, hexColor) {
     const inputEl = document.getElementById(inputId);
     const ringEl = document.getElementById(ringId);
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDynamicRing("yield-input", "yield-ring", "#10b981");
   setupDynamicRing("purity-input", "purity-ring", "#f59e0b");
 
-  // 콤마 헬퍼
+  // 3. 콤마 자동 생성 헬퍼
   function parseCommaNum(str) {
     return isNaN(parseFloat(String(str).replace(/,/g, "")))
       ? 0
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return num.toLocaleString("ko-KR", { maximumFractionDigits: 2 });
   }
 
-  // 전/금일재고 합산
+  // 4. 전/금일재고 자동 합산
   function setupAutoSum(input1Id, input2Id, totalId) {
     const in1 = document.getElementById(input1Id),
       in2 = document.getElementById(input2Id),
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAutoSum("prev-ind-input", "prev-bev-input", "prev-total-input");
   setupAutoSum("today-ind-ton", "today-bev-ton", "today-total-input");
 
-  // 용량 대비 퍼센트
+  // 5. 탱크 용량 대비 퍼센트 계산
   function setupInventoryRatio(
     tonInputId,
     percentInputId,
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "#10b981",
   );
 
-  // 실시간 탱크 자동 합산
+  // 6. 실시간 탱크 재고 자동 합산
   const tk1 = document.getElementById("tank1-ton"),
     tk2 = document.getElementById("tank2-ton"),
     tk3 = document.getElementById("tank3-ton"),
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 한전 차트
+  // 7. 한전 파워플래너 차트
   const ctx = document.getElementById("energyChart").getContext("2d");
   const labels = Array.from(
     { length: 25 },
@@ -247,18 +247,18 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // =========================================================================
-  // 🚀 [신규 무기] 메인 대시보드 실시간 클라우드(Firebase) 동기화 엔진 🚀
+  // 🚀 클라우드(Firebase) 동기화 엔진 🚀
   // =========================================================================
 
-  // 1. 모든 텍스트 숫자칸 동기화
+  // A. 텍스트 입력창 동기화
   const allInputs = document.querySelectorAll(
     'input[type="text"], input[type="time"]',
   );
   allInputs.forEach((input, index) => {
     const syncKey = input.id || "input_idx_" + index;
     input.addEventListener("input", (e) => {
-      if (e.isTrusted)
-        db.ref("dashboard/inputs/" + syncKey).set(e.target.value); // 실제 타이핑 시에만 클라우드 전송!
+      // 💡 깐깐한 조건 해제하여 완벽 작동 보장
+      db.ref("dashboard/inputs/" + syncKey).set(e.target.value);
     });
   });
 
@@ -269,24 +269,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data[syncKey] !== undefined && document.activeElement !== input) {
         if (input.value !== data[syncKey]) {
           input.value = data[syncKey];
-          input.dispatchEvent(new Event("input")); // 값 받으면 자동계산 트리거!
+          input.dispatchEvent(new Event("input")); // 값 받으면 자동합산 등 트리거 작동
         }
       }
     });
   });
 
-  // 2. 설비가동 토글 스위치 동기화
+  // B. 설비가동 토글 동기화
   const toggleGroups = document.querySelectorAll(".toggle-group");
   toggleGroups.forEach((group, index) => {
     const onBtn = group.querySelector(".on-btn");
     const offBtn = group.querySelector(".off-btn");
     const syncKey = "toggle_idx_" + index;
 
-    onBtn.addEventListener("click", (e) => {
-      if (e.isTrusted) db.ref("dashboard/toggles/" + syncKey).set("ON");
+    onBtn.addEventListener("click", () => {
+      db.ref("dashboard/toggles/" + syncKey).set("ON");
     });
-    offBtn.addEventListener("click", (e) => {
-      if (e.isTrusted) db.ref("dashboard/toggles/" + syncKey).set("OFF");
+    offBtn.addEventListener("click", () => {
+      db.ref("dashboard/toggles/" + syncKey).set("OFF");
     });
   });
 
@@ -300,19 +300,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (currentState === "ON") {
         onBtn.className =
-          "toggle-btn on-btn px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all duration-300 bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)] opacity-100";
+          "toggle-btn on-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)] opacity-100";
         offBtn.className =
-          "toggle-btn off-btn px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all duration-300 bg-transparent text-rose-500 opacity-20 hover:opacity-50";
+          "toggle-btn off-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-transparent text-rose-500 opacity-20 hover:opacity-50";
       } else if (currentState === "OFF") {
         offBtn.className =
-          "toggle-btn off-btn px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all duration-300 bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.8)] opacity-100";
+          "toggle-btn off-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.8)] opacity-100";
         onBtn.className =
-          "toggle-btn on-btn px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all duration-300 bg-transparent text-emerald-500 opacity-20 hover:opacity-50";
+          "toggle-btn on-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-transparent text-emerald-500 opacity-20 hover:opacity-50";
       }
     });
   });
 
-  // 3. DEFCON (비상 알람) 동기화
+  // C. 🚨 DEFCON (비상 알람) 엔진 🚨
   const defconBtn = document.getElementById("defcon-btn");
   const defconPing = document.getElementById("defcon-ping");
   const defconDot = document.getElementById("defcon-dot");
@@ -320,46 +320,44 @@ document.addEventListener("DOMContentLoaded", () => {
   let defconState = 0;
 
   if (defconBtn) {
-    defconBtn.addEventListener("click", (e) => {
-      if (e.isTrusted) {
-        const newState = (defconState + 1) % 3;
-        db.ref("dashboard/defcon").set(newState);
-      }
+    defconBtn.addEventListener("click", () => {
+      const newState = (defconState + 1) % 3;
+      db.ref("dashboard/defcon").set(newState);
     });
   }
 
   db.ref("dashboard/defcon").on("value", (snap) => {
     const val = snap.val();
-    if (val !== null) {
-      defconState = val;
-      if (defconState === 0) {
-        defconPing.className =
-          "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-        defconDot.className =
-          "relative inline-flex rounded-full h-4 w-4 bg-emerald-500";
-        defconText.className =
-          "text-emerald-400 font-bold tracking-widest text-sm w-[160px] text-center transition-colors group-hover:text-emerald-300";
-        defconText.textContent = "전 설비 정상 가동중";
-        document.body.classList.remove("emergency-mode");
-      } else if (defconState === 1) {
-        defconPing.className =
-          "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
-        defconDot.className =
-          "relative inline-flex rounded-full h-4 w-4 bg-amber-500";
-        defconText.className =
-          "text-amber-400 font-bold tracking-widest text-sm w-[160px] text-center transition-colors group-hover:text-amber-300";
-        defconText.textContent = "⚠️ 일부 설비 점검중";
-        document.body.classList.remove("emergency-mode");
-      } else if (defconState === 2) {
-        defconPing.className =
-          "fast-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75";
-        defconDot.className =
-          "relative inline-flex rounded-full h-4 w-4 bg-rose-600";
-        defconText.className =
-          "text-rose-500 font-black tracking-widest text-sm w-[160px] text-center transition-colors animate-pulse drop-shadow-[0_0_8px_rgba(225,29,72,0.8)]";
-        defconText.textContent = "🚨 비상: 이상 발생!";
-        document.body.classList.add("emergency-mode");
-      }
+    defconState = val !== null ? val : 0;
+
+    // 💡 HTML(w-[170px] 등)의 최신 클래스 설정과 100% 동일하게 튜닝 완료!
+    if (defconState === 0) {
+      defconPing.className =
+        "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+      defconDot.className =
+        "relative inline-flex rounded-full h-3 w-3 bg-emerald-500";
+      defconText.className =
+        "text-emerald-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-emerald-300";
+      defconText.textContent = "전 설비 정상 가동중";
+      document.body.classList.remove("emergency-mode");
+    } else if (defconState === 1) {
+      defconPing.className =
+        "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+      defconDot.className =
+        "relative inline-flex rounded-full h-3 w-3 bg-amber-500";
+      defconText.className =
+        "text-amber-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-amber-300";
+      defconText.textContent = "⚠️ 일부 설비 점검중";
+      document.body.classList.remove("emergency-mode");
+    } else if (defconState === 2) {
+      defconPing.className =
+        "fast-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75";
+      defconDot.className =
+        "relative inline-flex rounded-full h-3 w-3 bg-rose-600";
+      defconText.className =
+        "text-rose-500 font-black tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors animate-pulse drop-shadow-[0_0_8px_rgba(225,29,72,0.8)]";
+      defconText.textContent = "🚨 비상: 이상 발생!";
+      document.body.classList.add("emergency-mode");
     }
   });
 });
