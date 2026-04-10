@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function setupDynamicRing(inputId, ringId, hexColor) {
     const inputEl = document.getElementById(inputId);
     const ringEl = document.getElementById(ringId);
+    if (!inputEl || !ringEl) return;
     inputEl.addEventListener("input", (e) => {
       let val = parseFloat(e.target.value);
       if (isNaN(val)) val = 0;
@@ -64,14 +65,15 @@ document.addEventListener("DOMContentLoaded", () => {
       : parseFloat(String(str).replace(/,/g, ""));
   }
   function formatCommaNum(num) {
-    return num.toLocaleString("ko-KR", { maximumFractionDigits: 2 });
-  }
+    return num.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
+  } // 소수점 첫째자리 유지
 
   // 4. 전/금일재고 자동 합산
   function setupAutoSum(input1Id, input2Id, totalId) {
     const in1 = document.getElementById(input1Id),
       in2 = document.getElementById(input2Id),
       total = document.getElementById(totalId);
+    if (!in1 || !in2 || !total) return;
     function calculateSum() {
       total.value = formatCommaNum(
         parseCommaNum(in1.value) + parseCommaNum(in2.value),
@@ -100,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tonInput = document.getElementById(tonInputId),
       percentInput = document.getElementById(percentInputId),
       ringEl = document.getElementById(ringId);
+    if (!tonInput || !percentInput || !ringEl) return;
     function updateRatio() {
       let ratio = (parseCommaNum(tonInput.value) / maxCapacity) * 100;
       if (isNaN(ratio) || ratio < 0) ratio = 0;
@@ -126,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "#10b981",
   );
 
-  // 6. 실시간 탱크 재고 자동 합산
+  // 💡 6. 실시간 탱크 재고 자동 합산 (공업용, 식음료, 전체 복원)
   const tk1 = document.getElementById("tank1-ton"),
     tk2 = document.getElementById("tank2-ton"),
     tk3 = document.getElementById("tank3-ton"),
@@ -135,129 +138,139 @@ document.addEventListener("DOMContentLoaded", () => {
   const tkIndTotal = document.getElementById("ind-tank-total"),
     tkBevTotal = document.getElementById("bev-tank-total"),
     tkAllTotal = document.getElementById("all-tank-total");
+
   function calculateTankTotals() {
+    if (!tk1 || !tk2 || !tk3 || !tk4 || !tk5 || !tkAllTotal) return;
+    // 공업용 = Tank 1, 2, 3, 5
     const ind =
       parseCommaNum(tk1.value) +
       parseCommaNum(tk2.value) +
       parseCommaNum(tk3.value) +
       parseCommaNum(tk5.value);
+    // 식음료 = Tank 4
     const bev = parseCommaNum(tk4.value);
-    tkIndTotal.value = formatCommaNum(Number(ind.toFixed(2)));
-    tkBevTotal.value = formatCommaNum(Number(bev.toFixed(2)));
-    tkAllTotal.value = formatCommaNum(Number((ind + bev).toFixed(2)));
+
+    if (tkIndTotal) tkIndTotal.value = formatCommaNum(Number(ind.toFixed(1)));
+    if (tkBevTotal) tkBevTotal.value = formatCommaNum(Number(bev.toFixed(1)));
+    tkAllTotal.value = formatCommaNum(Number((ind + bev).toFixed(1)));
   }
+
   [tk1, tk2, tk3, tk4, tk5].forEach((input) => {
+    if (!input) return;
     input.addEventListener("input", calculateTankTotals);
     input.addEventListener("blur", (e) => {
       e.target.value = formatCommaNum(parseCommaNum(e.target.value));
       calculateTankTotals();
     });
   });
+  calculateTankTotals(); // 초기 계산
 
   // 7. 한전 파워플래너 차트
-  const ctx = document.getElementById("energyChart").getContext("2d");
-  const labels = Array.from(
-    { length: 25 },
-    (_, i) => `${String(i).padStart(2, "0")}시`,
-  );
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          type: "line",
-          label: "전월동일",
-          data: [
-            1050, 1040, 1060, 1080, 1100, 1120, 1140, 1160, 1150, 1140, 1130,
-            1150, 1170, 1190, 1210, 1230, 1250, 1500, 1550, 1530, 1510, 1490,
-            1300, 1280, 1290,
-          ],
-          borderColor: "#fb923c",
-          borderWidth: 2,
-          tension: 0.4,
-          pointRadius: 0,
-          fill: false,
+  const energyCanvas = document.getElementById("energyChart");
+  if (energyCanvas) {
+    const ctx = energyCanvas.getContext("2d");
+    const labels = Array.from(
+      { length: 25 },
+      (_, i) => `${String(i).padStart(2, "0")}시`,
+    );
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            type: "line",
+            label: "전월동일",
+            data: [
+              1050, 1040, 1060, 1080, 1100, 1120, 1140, 1160, 1150, 1140, 1130,
+              1150, 1170, 1190, 1210, 1230, 1250, 1500, 1550, 1530, 1510, 1490,
+              1300, 1280, 1290,
+            ],
+            borderColor: "#fb923c",
+            borderWidth: 2,
+            tension: 0.4,
+            pointRadius: 0,
+            fill: false,
+          },
+          {
+            type: "line",
+            label: "전일",
+            data: [
+              290, 285, 280, 275, 270, 265, 260, 255, 130, 120, 115, 110, 115,
+              120, 130, 290, 295, 300, 300, 295, 290, 285, 290, 295, 300,
+            ],
+            borderColor: "#4ade80",
+            borderWidth: 2,
+            tension: 0.4,
+            pointRadius: 0,
+            fill: false,
+          },
+          {
+            type: "line",
+            label: "평균",
+            data: [
+              270, 260, 250, 240, 230, 220, 210, 200, 150, 140, 130, 120, 130,
+              140, 150, 270, 280, 290, 290, 280, 270, 260, 270, 280, 290,
+            ],
+            borderColor: "#c084fc",
+            borderWidth: 2,
+            tension: 0.4,
+            pointRadius: 0,
+            fill: false,
+          },
+          {
+            type: "bar",
+            label: "사용량",
+            data: [
+              280, 275, 270, 180, 250, 245, 240, 235, 120, 110, 105, 100, 105,
+              110, 120, 280, 285, 290, 290, 285, 280, 275, 280, 285, 290,
+            ].map((val, idx) => (idx <= new Date().getHours() ? val : null)),
+            backgroundColor: "#2dd4bf",
+            barPercentage: 0.6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: "#94a3b8",
+              font: { size: 11, family: "Pretendard" },
+              usePointStyle: true,
+              boxWidth: 8,
+            },
+          },
         },
-        {
-          type: "line",
-          label: "전일",
-          data: [
-            290, 285, 280, 275, 270, 265, 260, 255, 130, 120, 115, 110, 115,
-            120, 130, 290, 295, 300, 300, 295, 290, 285, 290, 295, 300,
-          ],
-          borderColor: "#4ade80",
-          borderWidth: 2,
-          tension: 0.4,
-          pointRadius: 0,
-          fill: false,
-        },
-        {
-          type: "line",
-          label: "평균",
-          data: [
-            270, 260, 250, 240, 230, 220, 210, 200, 150, 140, 130, 120, 130,
-            140, 150, 270, 280, 290, 290, 280, 270, 260, 270, 280, 290,
-          ],
-          borderColor: "#c084fc",
-          borderWidth: 2,
-          tension: 0.4,
-          pointRadius: 0,
-          fill: false,
-        },
-        {
-          type: "bar",
-          label: "사용량",
-          data: [
-            280, 275, 270, 180, 250, 245, 240, 235, 120, 110, 105, 100, 105,
-            110, 120, 280, 285, 290, 290, 285, 280, 275, 280, 285, 290,
-          ].map((val, idx) => (idx <= new Date().getHours() ? val : null)),
-          backgroundColor: "#2dd4bf",
-          barPercentage: 0.6,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: {
-            color: "#94a3b8",
-            font: { size: 11, family: "Pretendard" },
-            usePointStyle: true,
-            boxWidth: 8,
+        scales: {
+          x: {
+            grid: { color: "#334155", drawBorder: false },
+            ticks: { color: "#64748b", font: { size: 10 } },
+          },
+          y: {
+            grid: { color: "#334155", borderDash: [5, 5] },
+            ticks: { color: "#64748b", font: { size: 10 } },
+            beginAtZero: true,
           },
         },
       },
-      scales: {
-        x: {
-          grid: { color: "#334155", drawBorder: false },
-          ticks: { color: "#64748b", font: { size: 10 } },
-        },
-        y: {
-          grid: { color: "#334155", borderDash: [5, 5] },
-          ticks: { color: "#64748b", font: { size: 10 } },
-          beginAtZero: true,
-        },
-      },
-    },
-  });
+    });
+  }
 
   // =========================================================================
   // 🚀 클라우드(Firebase) 동기화 엔진 🚀
   // =========================================================================
 
-  // A. 텍스트 입력창 동기화
+  // A. 텍스트 입력창 동기화 (탱크 재고 포함)
   const allInputs = document.querySelectorAll(
     'input[type="text"], input[type="time"]',
   );
   allInputs.forEach((input, index) => {
     const syncKey = input.id || "input_idx_" + index;
     input.addEventListener("input", (e) => {
-      // 💡 깐깐한 조건 해제하여 완벽 작동 보장
       db.ref("dashboard/inputs/" + syncKey).set(e.target.value);
     });
   });
@@ -275,7 +288,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // B. 설비가동 토글 동기화
+  // B. 생산일보 날짜 동기화 로직
+  const dateInput = document.getElementById("date-input");
+  const dateSyncKey = "dashboard/production_date";
+
+  if (dateInput) {
+    db.ref(dateSyncKey).on("value", (snapshot) => {
+      const savedDate = snapshot.val();
+      if (savedDate && document.activeElement !== dateInput) {
+        dateInput.value = savedDate;
+      }
+    });
+
+    dateInput.addEventListener("change", (e) => {
+      db.ref(dateSyncKey).set(e.target.value);
+    });
+  }
+
+  // C. 설비가동 토글 동기화
   const toggleGroups = document.querySelectorAll(".toggle-group");
   toggleGroups.forEach((group, index) => {
     const onBtn = group.querySelector(".on-btn");
@@ -312,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // C. 🚨 DEFCON (비상 알람) 엔진 🚨
+  // D. 🚨 DEFCON (비상 알람) 엔진 🚨
   const defconBtn = document.getElementById("defcon-btn");
   const defconPing = document.getElementById("defcon-ping");
   const defconDot = document.getElementById("defcon-dot");
@@ -330,33 +360,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const val = snap.val();
     defconState = val !== null ? val : 0;
 
-    // 💡 HTML(w-[170px] 등)의 최신 클래스 설정과 100% 동일하게 튜닝 완료!
     if (defconState === 0) {
-      defconPing.className =
-        "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-      defconDot.className =
-        "relative inline-flex rounded-full h-3 w-3 bg-emerald-500";
-      defconText.className =
-        "text-emerald-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-emerald-300";
-      defconText.textContent = "전 설비 정상 가동중";
+      if (defconPing)
+        defconPing.className =
+          "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+      if (defconDot)
+        defconDot.className =
+          "relative inline-flex rounded-full h-3 w-3 bg-emerald-500";
+      if (defconText) {
+        defconText.className =
+          "text-emerald-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-emerald-300";
+        defconText.textContent = "전 설비 정상 가동중";
+      }
       document.body.classList.remove("emergency-mode");
     } else if (defconState === 1) {
-      defconPing.className =
-        "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
-      defconDot.className =
-        "relative inline-flex rounded-full h-3 w-3 bg-amber-500";
-      defconText.className =
-        "text-amber-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-amber-300";
-      defconText.textContent = "⚠️ 일부 설비 점검중";
+      if (defconPing)
+        defconPing.className =
+          "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+      if (defconDot)
+        defconDot.className =
+          "relative inline-flex rounded-full h-3 w-3 bg-amber-500";
+      if (defconText) {
+        defconText.className =
+          "text-amber-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-amber-300";
+        defconText.textContent = "⚠️ 일부 설비 점검중";
+      }
       document.body.classList.remove("emergency-mode");
     } else if (defconState === 2) {
-      defconPing.className =
-        "fast-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75";
-      defconDot.className =
-        "relative inline-flex rounded-full h-3 w-3 bg-rose-600";
-      defconText.className =
-        "text-rose-500 font-black tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors animate-pulse drop-shadow-[0_0_8px_rgba(225,29,72,0.8)]";
-      defconText.textContent = "🚨 비상: 이상 발생!";
+      if (defconPing)
+        defconPing.className =
+          "fast-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75";
+      if (defconDot)
+        defconDot.className =
+          "relative inline-flex rounded-full h-3 w-3 bg-rose-600";
+      if (defconText) {
+        defconText.className =
+          "text-rose-500 font-black tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors animate-pulse drop-shadow-[0_0_8px_rgba(225,29,72,0.8)]";
+        defconText.textContent = "🚨 비상: 이상 발생!";
+      }
       document.body.classList.add("emergency-mode");
     }
   });
