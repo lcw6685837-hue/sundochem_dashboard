@@ -2,9 +2,23 @@
 <html lang="ko">
 <head>
     <script>
+        // 1. 보안 문지기
         if (sessionStorage.getItem('sundo_auth') !== 'true') {
             alert("🔒 정상적인 로그인이 필요합니다!");
             window.location.replace("index.html");
+        }
+
+        // 2. 전체화면 제어 엔진 (달력에도 추가!)
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`전체화면 에러: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
         }
     </script>
 
@@ -47,6 +61,11 @@
         </div>
         
         <div class="flex items-center gap-4">
+            
+            <button onclick="toggleFullScreen()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold shadow transition flex items-center gap-2">
+                <i class="fas fa-expand"></i> 전체화면
+            </button>
+
             <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded border border-slate-600 shadow-inner">
                 <span class="text-slate-400 text-sm font-bold mr-1">글자색:</span>
                 <button class="color-btn w-6 h-6 rounded-full bg-[#f8fafc] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#f8fafc" title="기본(흰색)"></button>
@@ -55,6 +74,7 @@
                 <button class="color-btn w-6 h-6 rounded-full bg-[#10b981] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#10b981" title="초록색 (정상/완료)"></button>
                 <button class="color-btn w-6 h-6 rounded-full bg-[#3b82f6] border-2 border-slate-500 hover:scale-125 transition-transform" data-color="#3b82f6" title="파란색 (회의/공지)"></button>
             </div>
+            
             <div class="flex gap-2">
                 <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition"><i class="fas fa-print mr-2"></i>인쇄</button>
                 <button onclick="window.close()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded border border-rose-500 font-bold transition"><i class="fas fa-times mr-2"></i>닫기</button>
