@@ -88,8 +88,12 @@ document.addEventListener("DOMContentLoaded", () => {
     in1.addEventListener("blur", formatOnBlur);
     in2.addEventListener("blur", formatOnBlur);
   }
+  
   setupAutoSum("prev-ind-input", "prev-bev-input", "prev-total-input");
   setupAutoSum("today-ind-ton", "today-bev-ton", "today-total-input");
+  
+  // 🍒 [NEW] 원료가스 실시간 입고량 자동 합산
+  setupAutoSum("psa1-input", "psa2-input", "psa-total-input");
 
   // 5. 탱크 용량 대비 퍼센트 계산
   function setupInventoryRatio(
