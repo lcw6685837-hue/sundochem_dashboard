@@ -160,25 +160,31 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col justify-around items-center w-[48%] pl-2">
-                    <div class="flex flex-col items-center gap-1.5">
-                        <span class="text-slate-300 text-lg font-black tracking-widest leading-none">공업용</span>
-                        <div id="today-ind-ring" class="relative w-24 h-24 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-300" style="background: conic-gradient(#3b82f6 47.9%, #334155 0);">
-                            <div class="absolute inset-[6px] bg-[#1e293b] rounded-full"></div>
-                            <div class="relative z-10 flex items-center justify-center text-white font-black text-2xl tracking-tight">
-                                <input type="text" id="today-ind-input" value="47.9" readonly class="bg-transparent w-16 text-center outline-none cursor-default px-0.5"><span class="text-sm font-bold">%</span>
+                
+                <div class="flex flex-col justify-center items-center w-[48%] pl-2 pr-1 gap-5">
+                    
+                    <div class="w-full flex flex-col items-center gap-1.5">
+                        <span class="text-slate-200 text-[17px] font-black tracking-widest leading-none drop-shadow-sm">공업용</span>
+                        <div class="relative w-full h-12 bg-[#0f172a] rounded-[2rem] border-2 border-slate-600 shadow-inner overflow-hidden">
+                            <div id="today-ind-fill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(245,158,11,0.5)]" style="width: 47.9%;"></div>
+                            <div class="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-white/20 to-transparent rounded-t-[2rem] pointer-events-none"></div>
+                            <div class="absolute inset-0 flex items-center justify-center z-10">
+                                <input type="text" id="today-ind-input" value="47.9" readonly class="bg-transparent w-16 text-center outline-none cursor-default text-white font-black text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,1)]"><span class="text-white text-sm font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">%</span>
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-col items-center gap-1.5">
-                        <span class="text-slate-300 text-lg font-black tracking-widest leading-none">식음용</span>
-                        <div id="today-bev-ring" class="relative w-24 h-24 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" style="background: conic-gradient(#10b981 30.6%, #334155 0);">
-                            <div class="absolute inset-[6px] bg-[#1e293b] rounded-full"></div>
-                            <div class="relative z-10 flex items-center justify-center text-white font-black text-2xl tracking-tight">
-                                <input type="text" id="today-bev-input" value="30.6" readonly class="bg-transparent w-16 text-center outline-none cursor-default px-0.5"><span class="text-sm font-bold">%</span>
+
+                    <div class="w-full flex flex-col items-center gap-1.5">
+                        <span class="text-slate-200 text-[17px] font-black tracking-widest leading-none drop-shadow-sm">식음용</span>
+                        <div class="relative w-full h-12 bg-[#0f172a] rounded-[2rem] border-2 border-slate-600 shadow-inner overflow-hidden">
+                            <div id="today-bev-fill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]" style="width: 30.6%;"></div>
+                            <div class="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-white/20 to-transparent rounded-t-[2rem] pointer-events-none"></div>
+                            <div class="absolute inset-0 flex items-center justify-center z-10">
+                                <input type="text" id="today-bev-input" value="30.6" readonly class="bg-transparent w-16 text-center outline-none cursor-default text-white font-black text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,1)]"><span class="text-white text-sm font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">%</span>
                             </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>

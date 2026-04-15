@@ -88,52 +88,50 @@ document.addEventListener("DOMContentLoaded", () => {
     in1.addEventListener("blur", formatOnBlur);
     in2.addEventListener("blur", formatOnBlur);
   }
-  
+
   setupAutoSum("prev-ind-input", "prev-bev-input", "prev-total-input");
   setupAutoSum("today-ind-ton", "today-bev-ton", "today-total-input");
-  
-  // 🍒 [NEW] 원료가스 실시간 입고량 자동 합산
   setupAutoSum("psa1-input", "psa2-input", "psa-total-input");
 
-  // 5. 탱크 용량 대비 퍼센트 계산
+  // 🍒 [UPDATE] 탱크 용량 게이지를 원형(Ring)에서 가로형(Width)으로 완벽 패치!
   function setupInventoryRatio(
     tonInputId,
     percentInputId,
-    ringId,
+    fillId,
     maxCapacity,
-    hexColor,
   ) {
     const tonInput = document.getElementById(tonInputId),
       percentInput = document.getElementById(percentInputId),
-      ringEl = document.getElementById(ringId);
-    if (!tonInput || !percentInput || !ringEl) return;
+      fillEl = document.getElementById(fillId);
+    if (!tonInput || !percentInput || !fillEl) return;
     function updateRatio() {
       let ratio = (parseCommaNum(tonInput.value) / maxCapacity) * 100;
       if (isNaN(ratio) || ratio < 0) ratio = 0;
       if (ratio > 100) ratio = 100;
       percentInput.value = ratio.toFixed(1);
-      ringEl.style.background = `conic-gradient(${hexColor} ${ratio.toFixed(1)}%, #334155 0)`;
+      // 배경색 대신 너비(width)를 조절하도록 로직 수정
+      fillEl.style.width = `${ratio.toFixed(1)}%`;
     }
     tonInput.addEventListener("input", updateRatio);
     tonInput.addEventListener("blur", updateRatio);
     updateRatio();
   }
+
+  // 캡틴의 요청대로 ID를 ring에서 fill로 맞췄습니다!
   setupInventoryRatio(
     "today-ind-ton",
     "today-ind-input",
-    "today-ind-ring",
+    "today-ind-fill",
     2900,
-    "#3b82f6",
   );
   setupInventoryRatio(
     "today-bev-ton",
     "today-bev-input",
-    "today-bev-ring",
+    "today-bev-fill",
     800,
-    "#10b981",
   );
 
-  // 💡 6. 실시간 탱크 재고 자동 합산 (공업용, 식음료, 전체 복원)
+  // 6. 실시간 탱크 재고 자동 합산
   const tk1 = document.getElementById("tank1-ton"),
     tk2 = document.getElementById("tank2-ton"),
     tk3 = document.getElementById("tank3-ton"),
@@ -145,13 +143,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function calculateTankTotals() {
     if (!tk1 || !tk2 || !tk3 || !tk4 || !tk5 || !tkAllTotal) return;
-    // 공업용 = Tank 1, 2, 3, 5
     const ind =
       parseCommaNum(tk1.value) +
       parseCommaNum(tk2.value) +
       parseCommaNum(tk3.value) +
       parseCommaNum(tk5.value);
-    // 식음료 = Tank 4
     const bev = parseCommaNum(tk4.value);
 
     if (tkIndTotal) tkIndTotal.value = formatCommaNum(Number(ind.toFixed(1)));
@@ -167,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       calculateTankTotals();
     });
   });
-  calculateTankTotals(); // 초기 계산
+  calculateTankTotals();
 
   // 7. 한전 파워플래너 차트
   const energyCanvas = document.getElementById("energyChart");
@@ -268,7 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // 🚀 클라우드(Firebase) 동기화 엔진 🚀
   // =========================================================================
 
-  // A. 텍스트 입력창 동기화 (탱크 재고 포함)
   const allInputs = document.querySelectorAll(
     'input[type="text"], input[type="time"]',
   );
@@ -286,16 +281,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data[syncKey] !== undefined && document.activeElement !== input) {
         if (input.value !== data[syncKey]) {
           input.value = data[syncKey];
-          input.dispatchEvent(new Event("input")); // 값 받으면 자동합산 등 트리거 작동
+          input.dispatchEvent(new Event("input"));
         }
       }
     });
   });
 
-  // B. 생산일보 날짜 동기화 로직
   const dateInput = document.getElementById("date-input");
   const dateSyncKey = "dashboard/production_date";
-
   if (dateInput) {
     db.ref(dateSyncKey).on("value", (snapshot) => {
       const savedDate = snapshot.val();
@@ -303,13 +296,11 @@ document.addEventListener("DOMContentLoaded", () => {
         dateInput.value = savedDate;
       }
     });
-
     dateInput.addEventListener("change", (e) => {
       db.ref(dateSyncKey).set(e.target.value);
     });
   }
 
-  // C. 설비가동 토글 동기화
   const toggleGroups = document.querySelectorAll(".toggle-group");
   toggleGroups.forEach((group, index) => {
     const onBtn = group.querySelector(".on-btn");
@@ -346,7 +337,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // D. 🚨 DEFCON (비상 알람) 엔진 🚨
   const defconBtn = document.getElementById("defcon-btn");
   const defconPing = document.getElementById("defcon-ping");
   const defconDot = document.getElementById("defcon-dot");
