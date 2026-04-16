@@ -162,7 +162,6 @@
                 </div>
                 
                 <div class="flex flex-col justify-center items-center w-[48%] pl-2 pr-1 gap-5">
-                    
                     <div class="w-full flex flex-col items-center gap-1.5">
                         <span class="text-slate-200 text-[17px] font-black tracking-widest leading-none drop-shadow-sm">공업용</span>
                         <div class="relative w-full h-12 bg-[#0f172a] rounded-[2rem] border-2 border-slate-600 shadow-inner overflow-hidden">
@@ -184,7 +183,6 @@
                             </div>
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </div>
@@ -270,9 +268,15 @@
                     </div>
                     <h3 class="text-white font-black text-lg tracking-widest drop-shadow-md">실시간 저장탱크 재고</h3>
                 </div>
-                <div class="flex items-center gap-1 bg-slate-800/80 border border-slate-600 px-2 py-1 rounded shadow-inner relative z-30">
-                    <span class="text-slate-400 text-[10px] font-bold">모니터링:</span>
-                    <input type="time" id="monitoring-time" value="15:00" class="bg-transparent outline-none text-pink-400 font-black text-xs cursor-pointer [color-scheme:dark]">
+                <div class="flex items-center gap-2 relative z-30">
+                    <span class="text-white font-black text-sm tracking-widest drop-shadow-md">입력시간</span>
+                    <div class="flex gap-1 bg-[#0f172a] p-1 rounded-lg border border-slate-700 shadow-inner" id="tank-time-group">
+                        <button class="tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)]" data-time="06">06시</button>
+                        <button class="tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200" data-time="10">10시</button>
+                        <button class="tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200" data-time="14">14시</button>
+                        <button class="tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200" data-time="16">16시</button>
+                        <button class="tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200" data-time="24">24시</button>
+                    </div>
                 </div>
             </div>
             

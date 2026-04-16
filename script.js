@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function formatCommaNum(num) {
     return num.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
-  } // 소수점 첫째자리 유지
+  }
 
   // 4. 전/금일재고 자동 합산
   function setupAutoSum(input1Id, input2Id, totalId) {
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAutoSum("today-ind-ton", "today-bev-ton", "today-total-input");
   setupAutoSum("psa1-input", "psa2-input", "psa-total-input");
 
-  // 🍒 [UPDATE] 탱크 용량 게이지를 원형(Ring)에서 가로형(Width)으로 완벽 패치!
+  // 5. 탱크 용량 대비 퍼센트 계산 (가로형 게이지)
   function setupInventoryRatio(
     tonInputId,
     percentInputId,
@@ -109,7 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isNaN(ratio) || ratio < 0) ratio = 0;
       if (ratio > 100) ratio = 100;
       percentInput.value = ratio.toFixed(1);
-      // 배경색 대신 너비(width)를 조절하도록 로직 수정
       fillEl.style.width = `${ratio.toFixed(1)}%`;
     }
     tonInput.addEventListener("input", updateRatio);
@@ -117,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateRatio();
   }
 
-  // 캡틴의 요청대로 ID를 ring에서 fill로 맞췄습니다!
   setupInventoryRatio(
     "today-ind-ton",
     "today-ind-input",
@@ -264,9 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // 🚀 클라우드(Firebase) 동기화 엔진 🚀
   // =========================================================================
 
-  const allInputs = document.querySelectorAll(
-    'input[type="text"], input[type="time"]',
-  );
+  // A. 일반 텍스트 입력창 동기화
+  const allInputs = document.querySelectorAll('input[type="text"]');
   allInputs.forEach((input, index) => {
     const syncKey = input.id || "input_idx_" + index;
     input.addEventListener("input", (e) => {
@@ -287,6 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // B. 생산일보 날짜 동기화
   const dateInput = document.getElementById("date-input");
   const dateSyncKey = "dashboard/production_date";
   if (dateInput) {
@@ -301,6 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // C. 설비가동 토글 동기화
   const toggleGroups = document.querySelectorAll(".toggle-group");
   toggleGroups.forEach((group, index) => {
     const onBtn = group.querySelector(".on-btn");
@@ -337,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // D. 🚨 DEFCON (비상 알람) 엔진 🚨
   const defconBtn = document.getElementById("defcon-btn");
   const defconPing = document.getElementById("defcon-ping");
   const defconDot = document.getElementById("defcon-dot");
@@ -395,4 +395,32 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.classList.add("emergency-mode");
     }
   });
+
+  // 🍒 [NEW] E. 저장탱크 '입력시간' 퀵-버튼 동기화 엔진
+  const tankTimeBtns = document.querySelectorAll(".tank-time-btn");
+  if (tankTimeBtns.length > 0) {
+    // 버튼 클릭 시 Firebase에 값 전송
+    tankTimeBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const selectedTime = e.target.getAttribute("data-time");
+        db.ref("dashboard/tank_input_time").set(selectedTime);
+      });
+    });
+
+    // Firebase에서 값 받아서 UI 업데이트
+    db.ref("dashboard/tank_input_time").on("value", (snap) => {
+      const val = snap.val() || "06"; // 기본값은 06시
+      tankTimeBtns.forEach((btn) => {
+        if (btn.getAttribute("data-time") === val) {
+          // 선택된 버튼 디자인 (에메랄드)
+          btn.className =
+            "tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)]";
+        } else {
+          // 비활성 버튼 디자인 (어두운 슬레이트)
+          btn.className =
+            "tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200";
+        }
+      });
+    });
+  }
 });
