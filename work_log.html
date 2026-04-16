@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script>
+        if (sessionStorage.getItem('sundo_auth') !== 'true') {
+            alert("🔒 정상적인 로그인이 필요합니다!");
+            window.location.replace("index.html");
+        }
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUNDOCHEM 디지털 근무일지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; background-color: #0b1120; color: #e2e8f0; }
+        
+        .log-container { background-color: #1e293b; border: 4px solid #8b5cf6; border-radius: 12px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
+        
+        .section-title { color: #cbd5e1; font-size: 1.15rem; font-weight: 800; margin-bottom: 0.5rem; display: flex; align-items: center; }
+        .input-box { background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; color: #f8fafc; padding: 0.75rem; width: 100%; outline: none; transition: border-color 0.2s; font-size: 1.1rem; }
+        .input-box:focus { border-color: #8b5cf6; box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3); }
+        
+        /* 🍒 textarea 스크롤바를 없애고 자동 확장되도록 세팅 */
+        textarea { resize: none; overflow: hidden; }
+        
+        .grid-table { border: 1px solid #334155; border-radius: 0.375rem; overflow: hidden; }
+        .grid-header { background-color: #1e293b; font-weight: bold; text-align: center; padding: 0.5rem; font-size: 1.05rem; color: #94a3b8; border-bottom: 1px solid #475569; border-right: 1px solid #475569; }
+        .grid-cell { padding: 0; border-bottom: 1px solid #334155; border-right: 1px solid #334155; background-color: #0f172a; }
+        .grid-cell:last-child { border-right: none; }
+        .grid-row:last-child .grid-cell { border-bottom: none; }
+        
+        .cell-input { width: 100%; height: 100%; background: transparent; border: none; outline: none; color: #e2e8f0; padding: 0.5rem; font-size: 1.15rem; text-align: center; font-weight: 600; }
+        .cell-input.left-align { text-align: left; padding-left: 0.75rem; }
+        
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #0f172a; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; transform: scale(1.3); margin-left: 5px; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            
+            body { 
+                background-color: #ffffff !important; 
+                color: #000000 !important;
+                display: block !important; 
+                min-height: 0 !important; 
+                height: auto !important; 
+                padding: 0 !important; 
+            }
+            
+            * { 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                background-color: transparent !important; 
+                color: #000000 !important; 
+                border-color: #000000 !important; 
+                box-shadow: none !important; 
+                text-shadow: none !important;
+            }
+            
+            .bg-clip-text { -webkit-text-fill-color: #000000 !important; background: none !important; }
+            .section-title span { background-color: #000000 !important; } 
+
+            .print-wrapper { width: 1000px !important; margin: 0 auto !important; }
+            .no-print { display: none !important; }
+            
+            .log-container { 
+                flex: none !important; height: auto !important; 
+                border: 2px solid #000000 !important; 
+                margin: 0 !important;
+            }
+            
+            ::placeholder { color: transparent !important; }
+            ::-webkit-input-placeholder { color: transparent !important; }
+            :-moz-placeholder { color: transparent !important; }
+            ::-moz-placeholder { color: transparent !important; }
+            :-ms-input-placeholder { color: transparent !important; }
+
+            input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
+            ::-webkit-scrollbar { display: none !important; }
+        }
+    </style>
+</head>
+<body class="p-4 min-h-screen flex flex-col">
+
+    <div class="print-wrapper flex-1 flex flex-col">
+        
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-clipboard-list text-[2.5rem] text-purple-500 no-print"></i>
+                <i class="fas fa-clipboard-list text-[2.5rem] text-black hidden print:block"></i>
+                <h1 class="text-[2.5rem] font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 tracking-widest drop-shadow-md">근 무 일 지</h1>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-slate-800 px-6 py-2.5 rounded-full border border-slate-600 shadow-inner">
+                <span class="text-slate-400 font-black text-lg tracking-widest print:text-black">근무 일자:</span>
+                <input type="date" id="log-date" class="bg-transparent border-none text-2xl font-black text-amber-300 outline-none cursor-pointer print:text-black">
+                <span id="log-day" class="text-2xl font-black text-amber-300 ml-1 print:text-black"></span>
+            </div>
+            
+            <div class="flex gap-2 no-print">
+                <button onclick="toggleFullScreen()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition flex items-center gap-2"><i class="fas fa-expand"></i> 전체화면</button>
+                <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition"><i class="fas fa-print mr-2"></i>인쇄</button>
+                <button onclick="window.close()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded border border-rose-500 font-bold transition"><i class="fas fa-times mr-2"></i>닫기</button>
+            </div>
+        </div>
+
+        <div class="log-container flex-1 flex flex-col p-5 gap-5 overflow-y-auto">
+            
+            <div class="flex gap-5">
+                <div class="flex-1 flex flex-col">
+                    <div class="section-title"><span class="w-1 h-5 bg-purple-500 mr-2 rounded-full"></span>사무실 전달사항</div>
+                    <textarea id="val_office_msg" class="input-box flex-1 sync-item font-bold" placeholder="전달사항을 입력하세요..." style="min-height: 120px;"></textarea>
+                </div>
+                
+                <div class="w-[500px] flex flex-col items-end">
+                    <div class="flex w-[480px] h-full pt-6">
+                        <div class="w-10 bg-slate-800 border border-slate-600 rounded-l-lg flex items-center justify-center text-slate-300 font-black text-lg tracking-[0.5em] shadow-inner" style="writing-mode: vertical-rl; text-orientation: upright;">결재</div>
+                        <div class="flex-1 flex flex-col">
+                            <div class="grid grid-cols-4 bg-[#0f172a] border-y border-r border-slate-600 rounded-tr-lg overflow-hidden flex-1">
+                                <div class="bg-slate-700/60 border-r border-b border-slate-600 flex items-center justify-center py-1 text-slate-300 font-bold">작 성</div>
+                                <div class="bg-slate-700/60 border-r border-b border-slate-600 flex items-center justify-center py-1 text-slate-300 font-bold">검 토 1</div>
+                                <div class="bg-slate-700/60 border-r border-b border-slate-600 flex items-center justify-center py-1 text-slate-300 font-bold">검 토 2</div>
+                                <div class="bg-slate-700/60 border-b border-slate-600 flex items-center justify-center py-1 text-slate-300 font-bold">승 인</div>
+                                <div class="border-r border-slate-600"><input type="text" id="val_sign_draft_up" class="cell-input text-blue-300 sync-item" placeholder="(서명)"></div>
+                                <div class="border-r border-slate-600"><input type="text" id="val_sign_rev1_up" class="cell-input text-blue-300 sync-item" placeholder="(서명)"></div>
+                                <div class="border-r border-slate-600"><input type="text" id="val_sign_rev2_up" class="cell-input text-blue-300 sync-item" placeholder="(서명)"></div>
+                                <div><input type="text" id="val_sign_appr_up" class="cell-input text-emerald-400 sync-item" placeholder="(서명)"></div>
+                            </div>
+                            <div class="grid grid-cols-3 bg-[#0f172a] border-b border-r border-slate-600 w-[75%] rounded-br-lg overflow-hidden flex-1">
+                                <div class="bg-slate-700/60 border-r border-b border-slate-600 flex items-center justify-center py-1 text-slate-300 font-bold text-sm">초야조장</div>
+                                <div class="bg-slate-700/60 border-r border-b border-slate-600 flex items-center justify-center py-1 text-slate-300 font-bold text-sm">주간조장</div>
+                                <div class="bg-slate-700/60 border-b border-slate-600 flex items-center justify-center py-1 text-slate-300 font-bold text-sm">야간조장</div>
+                                <div class="border-r border-slate-600"><input type="text" id="val_sign_choya" class="cell-input text-blue-300 sync-item" placeholder="(서명)"></div>
+                                <div class="border-r border-slate-600"><input type="text" id="val_sign_jugan" class="cell-input text-blue-300 sync-item" placeholder="(서명)"></div>
+                                <div><input type="text" id="val_sign_yagan" class="cell-input text-blue-300 sync-item" placeholder="(서명)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col mt-2">
+                <div class="section-title"><span class="w-1 h-5 bg-amber-500 mr-2 rounded-full"></span>전력 및 공업용수 검침</div>
+                <div class="grid-table grid grid-cols-12 bg-slate-800">
+                    <div class="col-span-1 grid-header flex items-center justify-center bg-amber-900/30 text-amber-200">전력</div>
+                    <div class="col-span-2 flex flex-col p-0 border-r border-slate-600">
+                        <div class="py-1.5 border-b border-blue-400/50 w-full text-center text-slate-300 font-bold text-lg bg-slate-700/50">4</div>
+                        <div class="flex-1 flex items-center justify-center bg-[#0f172a]"><input type="text" id="val_pwr_4" class="cell-input text-amber-300 font-black text-[1.3rem] w-full text-center sync-item"></div>
+                    </div>
+                    <div class="col-span-2 flex flex-col p-0 border-r border-slate-600">
+                        <div class="py-1.5 border-b border-blue-400/50 w-full text-center text-slate-300 font-bold text-lg bg-slate-700/50">5</div>
+                        <div class="flex-1 flex items-center justify-center bg-[#0f172a]"><input type="text" id="val_pwr_5" class="cell-input text-amber-300 font-black text-[1.3rem] w-full text-center sync-item"></div>
+                    </div>
+                    <div class="col-span-2 flex flex-col p-0 border-r border-slate-600">
+                        <div class="py-1.5 border-b border-blue-400/50 w-full text-center text-slate-300 font-bold text-lg bg-slate-700/50">6</div>
+                        <div class="flex-1 flex items-center justify-center bg-[#0f172a]"><input type="text" id="val_pwr_6" class="cell-input text-amber-300 font-black text-[1.3rem] w-full text-center sync-item"></div>
+                    </div>
+                    <div class="col-span-2 grid-header flex items-center justify-center bg-blue-900/30 text-blue-200 border-r border-slate-600">공업용수 (m³)</div>
+                    <div class="col-span-3 flex flex-col bg-[#0f172a]">
+                        <div class="flex border-b border-slate-600 flex-1"><span class="w-10 flex justify-center items-center font-bold text-slate-400 border-r border-slate-600 text-lg bg-slate-800">1:</span><input type="text" id="val_water_1" class="cell-input text-blue-300 font-black text-[1.3rem] left-align sync-item"></div>
+                        <div class="flex flex-1"><span class="w-10 flex justify-center items-center font-bold text-slate-400 border-r border-slate-600 text-lg bg-slate-800">2:</span><input type="text" id="val_water_2" class="cell-input text-blue-300 font-black text-[1.3rem] left-align sync-item"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col mt-2 print:min-h-0">
+                <div class="section-title"><span class="w-1 h-5 bg-emerald-500 mr-2 rounded-full"></span>각 조별 인수인계사항</div>
+                <div class="grid-table flex-1 grid grid-cols-3">
+                    <div class="grid-cell flex flex-col border-r-2 border-r-slate-600">
+                        <div class="grid-header text-purple-300 tracking-widest bg-purple-900/10">00:00 ~ 08:00 (초야)</div>
+                        <textarea id="val_shift_1" class="cell-input left-align flex-1 sync-item" placeholder="특이사항 기록..." style="min-height: 150px;"></textarea>
+                    </div>
+                    <div class="grid-cell flex flex-col border-r-2 border-r-slate-600">
+                        <div class="grid-header text-blue-300 tracking-widest bg-blue-900/10">08:00 ~ 16:00 (주간)</div>
+                        <textarea id="val_shift_2" class="cell-input left-align flex-1 sync-item" placeholder="특이사항 기록..." style="min-height: 150px;"></textarea>
+                    </div>
+                    <div class="grid-cell flex flex-col">
+                        <div class="grid-header text-emerald-300 tracking-widest bg-emerald-900/10">16:00 ~ 24:00 (야간)</div>
+                        <textarea id="val_shift_3" class="cell-input left-align flex-1 sync-item" placeholder="특이사항 기록..." style="min-height: 150px;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col mt-2">
+                <div class="section-title"><span class="w-1 h-5 bg-cyan-500 mr-2 rounded-full"></span>00시 기준 탱크 압력 및 재고, 가동 현황</div>
+                <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-3 flex flex-wrap gap-x-6 gap-y-3 items-center justify-between shadow-inner">
+                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-1 bg-slate-800"><span class="text-sm font-bold text-slate-300">공업압력:</span><input type="text" id="val_press_ind" class="w-16 bg-transparent text-white font-black text-xl text-center outline-none sync-item border-b border-slate-600"></div>
+                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-1 bg-slate-800"><span class="text-sm font-bold text-slate-300">식음압력:</span><input type="text" id="val_press_bev" class="w-16 bg-transparent text-white font-black text-xl text-center outline-none sync-item border-b border-slate-600"></div>
+                    <span class="w-px h-8 bg-slate-600"></span>
+                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400">#1:</span><input type="text" id="val_t1" class="w-14 bg-transparent border-b-2 border-slate-500 focus:border-cyan-400 text-cyan-300 font-black text-xl text-center outline-none sync-item"></div>
+                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400">#2:</span><input type="text" id="val_t2" class="w-14 bg-transparent border-b-2 border-slate-500 focus:border-cyan-400 text-cyan-300 font-black text-xl text-center outline-none sync-item"></div>
+                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400">#3:</span><input type="text" id="val_t3" class="w-14 bg-transparent border-b-2 border-slate-500 focus:border-cyan-400 text-cyan-300 font-black text-xl text-center outline-none sync-item"></div>
+                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400">#4:</span><input type="text" id="val_t4" class="w-14 bg-transparent border-b-2 border-slate-500 focus:border-cyan-400 text-cyan-300 font-black text-xl text-center outline-none sync-item"></div>
+                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400">#5:</span><input type="text" id="val_t5" class="w-14 bg-transparent border-b-2 border-slate-500 focus:border-cyan-400 text-cyan-300 font-black text-xl text-center outline-none sync-item"></div>
+                    <span class="w-px h-8 bg-slate-600"></span>
+                    <div class="flex items-center gap-3 border border-rose-500/50 rounded px-3 py-1 bg-rose-900/20"><span class="text-sm font-bold text-rose-300">액화설비 가동 수:</span><input type="text" id="val_eq_run" class="w-10 bg-transparent text-rose-400 font-black text-2xl text-center outline-none sync-item border-b border-rose-500/50"><span class="text-sm font-bold text-slate-400">대</span></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col mt-2 mb-2 print:min-h-0">
+                <div class="section-title text-rose-400"><i class="fas fa-exclamation-triangle mr-2 text-rose-500 print:text-black"></i>장비고장 또는 고장증상 발생으로 수리요청 사항 기록</div>
+                <div class="grid-table flex-1 flex flex-col border-rose-900/50">
+                    <div class="grid-row grid grid-cols-12 bg-rose-950/40">
+                        <div class="col-span-2 grid-header border-r border-rose-900/50 text-rose-300 font-black">작성일시</div>
+                        <div class="col-span-6 grid-header border-r border-rose-900/50 text-rose-300 font-black">생산 및 정비 (세부적 기록)</div>
+                        <div class="col-span-2 grid-header border-r border-rose-900/50 text-rose-300 font-black">작성자</div>
+                        <div class="col-span-2 grid-header text-rose-300 font-black">조치여부</div>
+                    </div>
+                    <div class="grid-row grid grid-cols-12 border-b border-rose-900/30">
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req1_time" class="cell-input sync-item" placeholder="예: 16일 02:00"></div>
+                        <div class="col-span-6 grid-cell border-r border-rose-900/30"><textarea id="val_req1_desc" class="cell-input left-align text-rose-200 sync-item pt-2" placeholder="고장 증상 및 요청사항" style="min-height: 45px;"></textarea></div>
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req1_auth" class="cell-input sync-item"></div>
+                        <div class="col-span-2 grid-cell"><input type="text" id="val_req1_status" class="cell-input sync-item"></div>
+                    </div>
+                    <div class="grid-row grid grid-cols-12 border-b border-rose-900/30">
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req2_time" class="cell-input sync-item"></div>
+                        <div class="col-span-6 grid-cell border-r border-rose-900/30"><textarea id="val_req2_desc" class="cell-input left-align text-rose-200 sync-item pt-2" placeholder="" style="min-height: 45px;"></textarea></div>
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req2_auth" class="cell-input sync-item"></div>
+                        <div class="col-span-2 grid-cell"><input type="text" id="val_req2_status" class="cell-input sync-item"></div>
+                    </div>
+                    <div class="grid-row grid grid-cols-12 border-b border-rose-900/30">
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req3_time" class="cell-input sync-item"></div>
+                        <div class="col-span-6 grid-cell border-r border-rose-900/30"><textarea id="val_req3_desc" class="cell-input left-align text-rose-200 sync-item pt-2" placeholder="" style="min-height: 45px;"></textarea></div>
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req3_auth" class="cell-input sync-item"></div>
+                        <div class="col-span-2 grid-cell"><input type="text" id="val_req3_status" class="cell-input sync-item"></div>
+                    </div>
+                    <div class="grid-row grid grid-cols-12">
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req4_time" class="cell-input sync-item"></div>
+                        <div class="col-span-6 grid-cell border-r border-rose-900/30"><textarea id="val_req4_desc" class="cell-input left-align text-rose-200 sync-item pt-2" placeholder="" style="min-height: 45px;"></textarea></div>
+                        <div class="col-span-2 grid-cell border-r border-rose-900/30"><input type="text" id="val_req4_auth" class="cell-input sync-item"></div>
+                        <div class="col-span-2 grid-cell"><input type="text" id="val_req4_status" class="cell-input sync-item"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div> <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
+            authDomain: "sundochem-dashboard.firebaseapp.com",
+            databaseURL: "https://sundochem-dashboard-default-rtdb.firebaseio.com",
+            projectId: "sundochem-dashboard",
+            storageBucket: "sundochem-dashboard.firebasestorage.app",
+            messagingSenderId: "360796635566",
+            appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('log-date');
+            const dayDisplay = document.getElementById('log-day'); 
+            const syncItems = document.querySelectorAll('.sync-item');
+            let currentRef = null;
+
+            const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+
+            function updateDayDisplay(dateStr) {
+                const dateObj = new Date(dateStr);
+                if (!isNaN(dateObj)) {
+                    dayDisplay.textContent = daysOfWeek[dateObj.getDay()] + '요일';
+                }
+            }
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+
+            // 🍒 [핵심 기술] 텍스트 입력 시 높이를 자동으로 조절하는 함수
+            function autoResizeTextarea(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = textarea.scrollHeight + 'px';
+            }
+
+            // 모든 텍스트 영역에 자동 조절 이벤트 부착
+            document.querySelectorAll('textarea').forEach(ta => {
+                ta.addEventListener('input', function() {
+                    autoResizeTextarea(this);
+                });
+            });
+
+            function loadLogData(dateStr) {
+                if (currentRef) currentRef.off();
+                currentRef = db.ref('work_logs/' + dateStr);
+                
+                currentRef.on('value', snapshot => {
+                    const data = snapshot.val() || {};
+                    syncItems.forEach(item => {
+                        if (document.activeElement !== item) {
+                            item.value = data[item.id] || '';
+                            
+                            // 💡 데이터를 불러온 직후에도 텍스트 영역 높이를 재조정!
+                            if (item.tagName === 'TEXTAREA') {
+                                setTimeout(() => autoResizeTextarea(item), 10);
+                            }
+                        }
+                    });
+                });
+            }
+
+            syncItems.forEach(item => {
+                item.addEventListener('input', e => {
+                    if (currentRef) {
+                        currentRef.child(e.target.id).set(e.target.value);
+                    }
+                });
+            });
+
+            dateInput.addEventListener('change', e => {
+                loadLogData(e.target.value);
+                updateDayDisplay(e.target.value);
+            });
+
+            loadLogData(dateInput.value);
+            updateDayDisplay(dateInput.value);
+        });
+    </script>
+</body>
+</html>
