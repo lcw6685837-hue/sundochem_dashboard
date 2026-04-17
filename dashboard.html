@@ -161,8 +161,8 @@
                     </div>
                 </div>
                 
-                <div class="flex flex-col justify-center items-center w-[48%] pl-2 pr-1 gap-5">
-                    <div class="w-full flex flex-col items-center gap-1.5">
+                <div class="flex flex-col justify-start pt-5 items-center w-[48%] pl-2 pr-1 gap-6">
+                    <div class="w-full flex flex-col items-center gap-0.5">
                         <span class="text-slate-200 text-[17px] font-black tracking-widest leading-none drop-shadow-sm">공업용</span>
                         <div class="relative w-full h-12 bg-[#0f172a] rounded-[2rem] border-2 border-slate-600 shadow-inner overflow-hidden">
                             <div id="today-ind-fill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(245,158,11,0.5)]" style="width: 47.9%;"></div>
@@ -173,7 +173,7 @@
                         </div>
                     </div>
 
-                    <div class="w-full flex flex-col items-center gap-1.5">
+                    <div class="w-full flex flex-col items-center gap-0.5">
                         <span class="text-slate-200 text-[17px] font-black tracking-widest leading-none drop-shadow-sm">식음용</span>
                         <div class="relative w-full h-12 bg-[#0f172a] rounded-[2rem] border-2 border-slate-600 shadow-inner overflow-hidden">
                             <div id="today-bev-fill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]" style="width: 30.6%;"></div>
@@ -280,65 +280,69 @@
                 </div>
             </div>
             
-            <div class="flex-1 flex flex-col justify-start gap-3 mt-2 relative z-10">
-                <div class="grid grid-cols-3 gap-2">
+            <div class="flex-1 flex flex-col gap-2 mt-2 relative z-10">
+                <div class="grid grid-cols-3 gap-2 flex-1">
                     <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 flex flex-col shadow-inner items-center justify-center">
                         <div class="text-center border-b border-slate-700 w-full pb-1 mb-1.5"><span class="text-white font-black text-sm tracking-wider">TANK #1</span></div>
-                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative">
-                            <input type="text" id="tank1-ton" value="179.8" class="bg-transparent text-center text-cyan-400 font-black text-5xl outline-none w-full transition-colors tracking-normal hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
+                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="tank1-ton" value="179.8" class="bg-transparent text-center text-cyan-400 font-black text-4xl xl:text-5xl outline-none w-full transition-colors tracking-tight hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
                             <span class="text-slate-400 font-bold text-xs mt-1 absolute bottom-1 right-2">ton</span>
                         </div>
                     </div>
                     <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 flex flex-col shadow-inner items-center justify-center">
                         <div class="text-center border-b border-slate-700 w-full pb-1 mb-1.5"><span class="text-white font-black text-sm tracking-wider">TANK #2</span></div>
-                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative">
-                            <input type="text" id="tank2-ton" value="178.0" class="bg-transparent text-center text-cyan-400 font-black text-5xl outline-none w-full transition-colors tracking-normal hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
+                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="tank2-ton" value="178.0" class="bg-transparent text-center text-cyan-400 font-black text-4xl xl:text-5xl outline-none w-full transition-colors tracking-tight hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
                             <span class="text-slate-400 font-bold text-xs mt-1 absolute bottom-1 right-2">ton</span>
                         </div>
                     </div>
                     <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 flex flex-col shadow-inner items-center justify-center">
                         <div class="text-center border-b border-slate-700 w-full pb-1 mb-1.5"><span class="text-white font-black text-sm tracking-wider">TANK #3</span></div>
-                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative">
-                            <input type="text" id="tank3-ton" value="175.3" class="bg-transparent text-center text-cyan-400 font-black text-5xl outline-none w-full transition-colors tracking-normal hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
+                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="tank13-ton" value="175.3" class="bg-transparent text-center text-cyan-400 font-black text-4xl xl:text-5xl outline-none w-full transition-colors tracking-tight hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
                             <span class="text-slate-400 font-bold text-xs mt-1 absolute bottom-1 right-2">ton</span>
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
+                
+                <div class="grid grid-cols-3 gap-2 flex-1">
                     <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 flex flex-col shadow-inner items-center justify-center">
                         <div class="text-center border-b border-emerald-800 w-full pb-1 mb-1.5"><span class="text-emerald-400 font-black text-sm tracking-wider">TANK #4</span></div>
-                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative">
-                            <input type="text" id="tank4-ton" value="355.7" class="bg-transparent text-center text-cyan-400 font-black text-5xl outline-none w-full transition-colors tracking-normal hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
+                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="tank4-ton" value="355.7" class="bg-transparent text-center text-cyan-400 font-black text-4xl xl:text-5xl outline-none w-full transition-colors tracking-tight hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
                             <span class="text-slate-400 font-bold text-xs mt-1 absolute bottom-1 right-2">ton</span>
                         </div>
                     </div>
                     <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 flex flex-col shadow-inner items-center justify-center">
                         <div class="text-center border-b border-slate-700 w-full pb-1 mb-1.5"><span class="text-white font-black text-sm tracking-wider">TANK #5</span></div>
-                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative">
-                            <input type="text" id="tank5-ton" value="484.3" class="bg-transparent text-center text-cyan-400 font-black text-5xl outline-none w-full transition-colors tracking-normal hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
+                        <div class="border border-slate-500 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="tank5-ton" value="484.3" class="bg-transparent text-center text-cyan-400 font-black text-4xl xl:text-5xl outline-none w-full transition-colors tracking-tight hover:bg-slate-700/50 focus:bg-slate-700 rounded leading-none">
                             <span class="text-slate-400 font-bold text-xs mt-1 absolute bottom-1 right-2">ton</span>
                         </div>
                     </div>
                     <div></div> 
                 </div>
 
-                <div class="grid grid-cols-3 gap-2 mt-2 pt-3 border-t border-slate-600/80">
-                    <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 text-center shadow-inner flex flex-col justify-center">
-                        <p class="text-slate-300 text-[11px] font-bold mb-1 border-b border-slate-700 pb-0.5">공업용 합계</p>
-                        <div class="flex justify-center items-baseline">
-                            <input type="text" id="ind-tank-total" value="1,017.5" readonly class="bg-transparent text-center text-blue-400 font-black text-xl outline-none w-full cursor-default tracking-tighter"><span class="text-[10px] font-normal text-slate-500 ml-0.5">Ton</span>
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-600/80 flex-1">
+                    <div class="bg-[#0f172a] border border-blue-500/50 rounded-lg p-2 flex flex-col shadow-[0_0_8px_rgba(59,130,246,0.15)] items-center justify-center">
+                        <div class="text-center border-b border-blue-900/50 w-full pb-1 mb-1.5"><span class="text-blue-300 font-black text-sm tracking-wider">공업용 합계</span></div>
+                        <div class="border border-blue-500/30 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="ind-tank-total" value="1,017.5" readonly class="bg-transparent text-center text-blue-400 font-black text-4xl xl:text-5xl outline-none w-full cursor-default tracking-tight leading-none">
+                            <span class="text-slate-500 font-bold text-xs mt-1 absolute bottom-1 right-2">Ton</span>
                         </div>
                     </div>
-                    <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 text-center shadow-inner flex flex-col justify-center">
-                        <p class="text-slate-300 text-[11px] font-bold mb-1 border-b border-slate-700 pb-0.5">식음료 합계</p>
-                        <div class="flex justify-center items-baseline">
-                            <input type="text" id="bev-tank-total" value="355.7" readonly class="bg-transparent text-center text-emerald-400 font-black text-xl outline-none w-full cursor-default tracking-tighter"><span class="text-[10px] font-normal text-slate-500 ml-0.5">Ton</span>
+                    <div class="bg-[#0f172a] border border-emerald-500/50 rounded-lg p-2 flex flex-col shadow-[0_0_8px_rgba(16,185,129,0.15)] items-center justify-center">
+                        <div class="text-center border-b border-emerald-900/50 w-full pb-1 mb-1.5"><span class="text-emerald-300 font-black text-sm tracking-wider">식음료 합계</span></div>
+                        <div class="border border-emerald-500/30 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="bev-tank-total" value="355.7" readonly class="bg-transparent text-center text-emerald-400 font-black text-4xl xl:text-5xl outline-none w-full cursor-default tracking-tight leading-none">
+                            <span class="text-slate-500 font-bold text-xs mt-1 absolute bottom-1 right-2">Ton</span>
                         </div>
                     </div>
-                    <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2 text-center shadow-[0_0_8px_rgba(236,72,153,0.15)] flex flex-col justify-center">
-                        <p class="text-pink-300 text-[11px] font-bold mb-1 border-b border-pink-900/50 pb-0.5">TOTAL 합계</p>
-                        <div class="flex justify-center items-baseline">
-                            <input type="text" id="all-tank-total" value="1,373.3" readonly class="bg-transparent text-center text-pink-400 font-black text-xl outline-none w-full cursor-default tracking-tighter"><span class="text-[10px] font-normal text-slate-500 ml-0.5">Ton</span>
+                    <div class="bg-[#0f172a] border border-pink-500/50 rounded-lg p-2 flex flex-col shadow-[0_0_8px_rgba(236,72,153,0.15)] items-center justify-center">
+                        <div class="text-center border-b border-pink-900/50 w-full pb-1 mb-1.5"><span class="text-pink-300 font-black text-sm tracking-wider">TOTAL 합계</span></div>
+                        <div class="border border-pink-500/30 rounded-lg p-3 w-full flex flex-col items-center justify-center bg-slate-800/50 relative flex-1">
+                            <input type="text" id="all-tank-total" value="1,373.3" readonly class="bg-transparent text-center text-pink-400 font-black text-4xl xl:text-5xl outline-none w-full cursor-default tracking-tight leading-none">
+                            <span class="text-slate-500 font-bold text-xs mt-1 absolute bottom-1 right-2">Ton</span>
                         </div>
                     </div>
                 </div>
