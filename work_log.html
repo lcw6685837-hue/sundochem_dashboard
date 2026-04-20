@@ -2,10 +2,6 @@
 <html lang="ko">
 <head>
     <script>
-        if (sessionStorage.getItem('sundo_auth') !== 'true') {
-            alert("🔒 정상적인 로그인이 필요합니다!");
-            window.location.replace("index.html");
-        }
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
@@ -17,9 +13,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUNDOCHEM 디지털 근무일지</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
     <style>
@@ -310,22 +312,50 @@
                 });
             }
 
-            syncItems.forEach(item => {
-                item.addEventListener('input', e => {
-                    if (currentRef) {
-                        currentRef.child(e.target.id).set(e.target.value);
-                    }
-                });
-            });
+            // =========================================================================
+            // 🛡️ [핵심 보완] 신분증(Auth) 확인 후 데이터베이스 통신 연결 
+            // =========================================================================
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    // 인증 통과! -> 이벤트 리스너 달고 데이터 불러오기 시작
+                    syncItems.forEach(item => {
+                        item.addEventListener('input', e => {
+                            if (currentRef) {
+                                currentRef.child(e.target.id).set(e.target.value);
+                                
+                                // 🍒 [추가] 인수인계사항이나 수리요청사항에 글자가 입력되면 DB에 현재 시간 전송!
+                                if (e.target.id.startsWith('val_shift_') || e.target.id.startsWith('val_req')) {
+                                    db.ref('notifications/work_log_updated').set(Date.now());
+                                }
+                            }
+                        });
+                    });
 
-            dateInput.addEventListener('change', e => {
-                loadLogData(e.target.value);
-                updateDayDisplay(e.target.value);
-            });
+                    dateInput.addEventListener('change', e => {
+                        loadLogData(e.target.value);
+                        updateDayDisplay(e.target.value);
+                    });
 
-            loadLogData(dateInput.value);
-            updateDayDisplay(dateInput.value);
+                    loadLogData(dateInput.value);
+                    updateDayDisplay(dateInput.value);
+                } else {
+                    // 미인증자는 로그인 화면으로 강제 이동
+                    window.location.replace("index.html");
+                }
+            });
         });
+
+        // 🍒 자동 새로고침 엔진 (그대로 유지)
+        function scheduleMidnightRefresh() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+            const msUntilMidnight = tomorrow.getTime() - now.getTime();
+            
+            setTimeout(() => {
+                window.location.reload(true); 
+            }, msUntilMidnight);
+        }
+        scheduleMidnightRefresh();
     </script>
 </body>
 </html>

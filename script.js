@@ -1,4 +1,3 @@
-// 💡 1. Firebase 설정 (창우님의 프로젝트 API 키 완벽 적용!)
 const firebaseConfig = {
   apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
   authDomain: "sundochem-dashboard.firebaseapp.com",
@@ -8,36 +7,27 @@ const firebaseConfig = {
   messagingSenderId: "360796635566",
   appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f",
 };
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. 실시간 플립 시계
+  // ==========================================
+  // 1. 화면 UI 기능들 (로그인 상관없이 즉시 실행)
+  // ==========================================
   function updateFlipClock() {
     const now = new Date();
     const utc = now.getTime() + now.getTimezoneOffset() * 60000;
     const kst = new Date(utc + 3600000 * 9);
     document.getElementById("fc-year").textContent = kst.getFullYear();
-    document.getElementById("fc-month").textContent = String(
-      kst.getMonth() + 1,
-    ).padStart(2, "0");
-    document.getElementById("fc-day").textContent = String(
-      kst.getDate(),
-    ).padStart(2, "0");
-    document.getElementById("fc-hour").textContent = String(
-      kst.getHours(),
-    ).padStart(2, "0");
-    document.getElementById("fc-min").textContent = String(
-      kst.getMinutes(),
-    ).padStart(2, "0");
-    document.getElementById("fc-sec").textContent = String(
-      kst.getSeconds(),
-    ).padStart(2, "0");
+    document.getElementById("fc-month").textContent = String(kst.getMonth() + 1).padStart(2, "0");
+    document.getElementById("fc-day").textContent = String(kst.getDate()).padStart(2, "0");
+    document.getElementById("fc-hour").textContent = String(kst.getHours()).padStart(2, "0");
+    document.getElementById("fc-min").textContent = String(kst.getMinutes()).padStart(2, "0");
+    document.getElementById("fc-sec").textContent = String(kst.getSeconds()).padStart(2, "0");
   }
   updateFlipClock();
   setInterval(updateFlipClock, 1000);
 
-  // 2. 수율 및 가스순도 링 애니메이션
   function setupDynamicRing(inputId, ringId, hexColor) {
     const inputEl = document.getElementById(inputId);
     const ringEl = document.getElementById(ringId);
@@ -58,27 +48,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDynamicRing("yield-input", "yield-ring", "#10b981");
   setupDynamicRing("purity-input", "purity-ring", "#f59e0b");
 
-  // 3. 콤마 자동 생성 헬퍼
-  function parseCommaNum(str) {
-    return isNaN(parseFloat(String(str).replace(/,/g, "")))
-      ? 0
-      : parseFloat(String(str).replace(/,/g, ""));
-  }
-  function formatCommaNum(num) {
-    return num.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
-  }
+  function parseCommaNum(str) { return isNaN(parseFloat(String(str).replace(/,/g, ""))) ? 0 : parseFloat(String(str).replace(/,/g, "")); }
+  function formatCommaNum(num) { return num.toLocaleString("ko-KR", { maximumFractionDigits: 1 }); }
 
-  // 4. 전/금일재고 자동 합산
   function setupAutoSum(input1Id, input2Id, totalId) {
-    const in1 = document.getElementById(input1Id),
-      in2 = document.getElementById(input2Id),
-      total = document.getElementById(totalId);
+    const in1 = document.getElementById(input1Id), in2 = document.getElementById(input2Id), total = document.getElementById(totalId);
     if (!in1 || !in2 || !total) return;
-    function calculateSum() {
-      total.value = formatCommaNum(
-        parseCommaNum(in1.value) + parseCommaNum(in2.value),
-      );
-    }
+    function calculateSum() { total.value = formatCommaNum(parseCommaNum(in1.value) + parseCommaNum(in2.value)); }
     in1.addEventListener("input", calculateSum);
     in2.addEventListener("input", calculateSum);
     function formatOnBlur(e) {
@@ -88,21 +64,12 @@ document.addEventListener("DOMContentLoaded", () => {
     in1.addEventListener("blur", formatOnBlur);
     in2.addEventListener("blur", formatOnBlur);
   }
-
   setupAutoSum("prev-ind-input", "prev-bev-input", "prev-total-input");
   setupAutoSum("today-ind-ton", "today-bev-ton", "today-total-input");
   setupAutoSum("psa1-input", "psa2-input", "psa-total-input");
 
-  // 5. 탱크 용량 대비 퍼센트 계산 (가로형 게이지)
-  function setupInventoryRatio(
-    tonInputId,
-    percentInputId,
-    fillId,
-    maxCapacity,
-  ) {
-    const tonInput = document.getElementById(tonInputId),
-      percentInput = document.getElementById(percentInputId),
-      fillEl = document.getElementById(fillId);
+  function setupInventoryRatio(tonInputId, percentInputId, fillId, maxCapacity) {
+    const tonInput = document.getElementById(tonInputId), percentInput = document.getElementById(percentInputId), fillEl = document.getElementById(fillId);
     if (!tonInput || !percentInput || !fillEl) return;
     function updateRatio() {
       let ratio = (parseCommaNum(tonInput.value) / maxCapacity) * 100;
@@ -115,312 +82,196 @@ document.addEventListener("DOMContentLoaded", () => {
     tonInput.addEventListener("blur", updateRatio);
     updateRatio();
   }
+  setupInventoryRatio("today-ind-ton", "today-ind-input", "today-ind-fill", 2900);
+  setupInventoryRatio("today-bev-ton", "today-bev-input", "today-bev-fill", 800);
 
-  setupInventoryRatio(
-    "today-ind-ton",
-    "today-ind-input",
-    "today-ind-fill",
-    2900,
-  );
-  setupInventoryRatio(
-    "today-bev-ton",
-    "today-bev-input",
-    "today-bev-fill",
-    800,
-  );
-
-  // 6. 실시간 탱크 재고 자동 합산
-  const tk1 = document.getElementById("tank1-ton"),
-    tk2 = document.getElementById("tank2-ton"),
-    tk3 = document.getElementById("tank3-ton"),
-    tk4 = document.getElementById("tank4-ton"),
-    tk5 = document.getElementById("tank5-ton");
-  const tkIndTotal = document.getElementById("ind-tank-total"),
-    tkBevTotal = document.getElementById("bev-tank-total"),
-    tkAllTotal = document.getElementById("all-tank-total");
+  const tk1 = document.getElementById("tank1-ton"), tk2 = document.getElementById("tank2-ton"), tk3 = document.getElementById("tank3-ton"), tk4 = document.getElementById("tank4-ton"), tk5 = document.getElementById("tank5-ton");
+  const tkIndTotal = document.getElementById("ind-tank-total"), tkBevTotal = document.getElementById("bev-tank-total"), tkAllTotal = document.getElementById("all-tank-total");
 
   function calculateTankTotals() {
     if (!tk1 || !tk2 || !tk3 || !tk4 || !tk5 || !tkAllTotal) return;
-    const ind =
-      parseCommaNum(tk1.value) +
-      parseCommaNum(tk2.value) +
-      parseCommaNum(tk3.value) +
-      parseCommaNum(tk5.value);
+    const ind = parseCommaNum(tk1.value) + parseCommaNum(tk2.value) + parseCommaNum(tk3.value) + parseCommaNum(tk5.value);
     const bev = parseCommaNum(tk4.value);
-
     if (tkIndTotal) tkIndTotal.value = formatCommaNum(Number(ind.toFixed(1)));
     if (tkBevTotal) tkBevTotal.value = formatCommaNum(Number(bev.toFixed(1)));
     tkAllTotal.value = formatCommaNum(Number((ind + bev).toFixed(1)));
   }
-
   [tk1, tk2, tk3, tk4, tk5].forEach((input) => {
     if (!input) return;
     input.addEventListener("input", calculateTankTotals);
-    input.addEventListener("blur", (e) => {
-      e.target.value = formatCommaNum(parseCommaNum(e.target.value));
-      calculateTankTotals();
-    });
+    input.addEventListener("blur", (e) => { e.target.value = formatCommaNum(parseCommaNum(e.target.value)); calculateTankTotals(); });
   });
   calculateTankTotals();
 
-  // 7. 한전 파워플래너 차트
   const energyCanvas = document.getElementById("energyChart");
   if (energyCanvas) {
     const ctx = energyCanvas.getContext("2d");
-    const labels = Array.from(
-      { length: 25 },
-      (_, i) => `${String(i).padStart(2, "0")}시`,
-    );
+    const labels = Array.from({ length: 25 }, (_, i) => `${String(i).padStart(2, "0")}시`);
     new Chart(ctx, {
       type: "bar",
       data: {
         labels: labels,
         datasets: [
-          {
-            type: "line",
-            label: "전월동일",
-            data: [
-              1050, 1040, 1060, 1080, 1100, 1120, 1140, 1160, 1150, 1140, 1130,
-              1150, 1170, 1190, 1210, 1230, 1250, 1500, 1550, 1530, 1510, 1490,
-              1300, 1280, 1290,
-            ],
-            borderColor: "#fb923c",
-            borderWidth: 2,
-            tension: 0.4,
-            pointRadius: 0,
-            fill: false,
-          },
-          {
-            type: "line",
-            label: "전일",
-            data: [
-              290, 285, 280, 275, 270, 265, 260, 255, 130, 120, 115, 110, 115,
-              120, 130, 290, 295, 300, 300, 295, 290, 285, 290, 295, 300,
-            ],
-            borderColor: "#4ade80",
-            borderWidth: 2,
-            tension: 0.4,
-            pointRadius: 0,
-            fill: false,
-          },
-          {
-            type: "line",
-            label: "평균",
-            data: [
-              270, 260, 250, 240, 230, 220, 210, 200, 150, 140, 130, 120, 130,
-              140, 150, 270, 280, 290, 290, 280, 270, 260, 270, 280, 290,
-            ],
-            borderColor: "#c084fc",
-            borderWidth: 2,
-            tension: 0.4,
-            pointRadius: 0,
-            fill: false,
-          },
-          {
-            type: "bar",
-            label: "사용량",
-            data: [
-              280, 275, 270, 180, 250, 245, 240, 235, 120, 110, 105, 100, 105,
-              110, 120, 280, 285, 290, 290, 285, 280, 275, 280, 285, 290,
-            ].map((val, idx) => (idx <= new Date().getHours() ? val : null)),
-            backgroundColor: "#2dd4bf",
-            barPercentage: 0.6,
-          },
-        ],
+          { type: "line", label: "전월동일", data: [1050, 1040, 1060, 1080, 1100, 1120, 1140, 1160, 1150, 1140, 1130, 1150, 1170, 1190, 1210, 1230, 1250, 1500, 1550, 1530, 1510, 1490, 1300, 1280, 1290], borderColor: "#fb923c", borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false },
+          { type: "line", label: "전일", data: [290, 285, 280, 275, 270, 265, 260, 255, 130, 120, 115, 110, 115, 120, 130, 290, 295, 300, 300, 295, 290, 285, 290, 295, 300], borderColor: "#4ade80", borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false },
+          { type: "line", label: "평균", data: [270, 260, 250, 240, 230, 220, 210, 200, 150, 140, 130, 120, 130, 140, 150, 270, 280, 290, 290, 280, 270, 260, 270, 280, 290], borderColor: "#c084fc", borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false },
+          { type: "bar", label: "사용량", data: [280, 275, 270, 180, 250, 245, 240, 235, 120, 110, 105, 100, 105, 110, 120, 280, 285, 290, 290, 285, 280, 275, 280, 285, 290].map((val, idx) => (idx <= new Date().getHours() ? val : null)), backgroundColor: "#2dd4bf", barPercentage: 0.6 }
+        ]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              color: "#94a3b8",
-              font: { size: 11, family: "Pretendard" },
-              usePointStyle: true,
-              boxWidth: 8,
-            },
-          },
-        },
+        responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+        plugins: { legend: { position: "bottom", labels: { color: "#94a3b8", font: { size: 11, family: "Pretendard" }, usePointStyle: true, boxWidth: 8 } } },
         scales: {
-          x: {
-            grid: { color: "#334155", drawBorder: false },
-            ticks: { color: "#64748b", font: { size: 10 } },
-          },
-          y: {
-            grid: { color: "#334155", borderDash: [5, 5] },
-            ticks: { color: "#64748b", font: { size: 10 } },
-            beginAtZero: true,
-          },
-        },
-      },
-    });
-  }
-
-  // =========================================================================
-  // 🚀 클라우드(Firebase) 동기화 엔진 🚀
-  // =========================================================================
-
-  // A. 일반 텍스트 입력창 동기화
-  const allInputs = document.querySelectorAll('input[type="text"]');
-  allInputs.forEach((input, index) => {
-    const syncKey = input.id || "input_idx_" + index;
-    input.addEventListener("input", (e) => {
-      db.ref("dashboard/inputs/" + syncKey).set(e.target.value);
-    });
-  });
-
-  db.ref("dashboard/inputs").on("value", (snapshot) => {
-    const data = snapshot.val() || {};
-    allInputs.forEach((input, index) => {
-      const syncKey = input.id || "input_idx_" + index;
-      if (data[syncKey] !== undefined && document.activeElement !== input) {
-        if (input.value !== data[syncKey]) {
-          input.value = data[syncKey];
-          input.dispatchEvent(new Event("input"));
+          x: { grid: { color: "#334155", drawBorder: false }, ticks: { color: "#64748b", font: { size: 10 } } },
+          y: { grid: { color: "#334155", borderDash: [5, 5] }, ticks: { color: "#64748b", font: { size: 10 } }, beginAtZero: true }
         }
       }
     });
-  });
-
-  // B. 생산일보 날짜 동기화
-  const dateInput = document.getElementById("date-input");
-  const dateSyncKey = "dashboard/production_date";
-  if (dateInput) {
-    db.ref(dateSyncKey).on("value", (snapshot) => {
-      const savedDate = snapshot.val();
-      if (savedDate && document.activeElement !== dateInput) {
-        dateInput.value = savedDate;
-      }
-    });
-    dateInput.addEventListener("change", (e) => {
-      db.ref(dateSyncKey).set(e.target.value);
-    });
   }
 
-  // C. 설비가동 토글 동기화
-  const toggleGroups = document.querySelectorAll(".toggle-group");
-  toggleGroups.forEach((group, index) => {
-    const onBtn = group.querySelector(".on-btn");
-    const offBtn = group.querySelector(".off-btn");
-    const syncKey = "toggle_idx_" + index;
-
-    onBtn.addEventListener("click", () => {
-      db.ref("dashboard/toggles/" + syncKey).set("ON");
-    });
-    offBtn.addEventListener("click", () => {
-      db.ref("dashboard/toggles/" + syncKey).set("OFF");
-    });
-  });
-
-  db.ref("dashboard/toggles").on("value", (snapshot) => {
-    const data = snapshot.val() || {};
-    toggleGroups.forEach((group, index) => {
-      const syncKey = "toggle_idx_" + index;
-      const currentState = data[syncKey];
-      const onBtn = group.querySelector(".on-btn");
-      const offBtn = group.querySelector(".off-btn");
-
-      if (currentState === "ON") {
-        onBtn.className =
-          "toggle-btn on-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)] opacity-100";
-        offBtn.className =
-          "toggle-btn off-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-transparent text-rose-500 opacity-20 hover:opacity-50";
-      } else if (currentState === "OFF") {
-        offBtn.className =
-          "toggle-btn off-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.8)] opacity-100";
-        onBtn.className =
-          "toggle-btn on-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-transparent text-emerald-500 opacity-20 hover:opacity-50";
-      }
-    });
-  });
-
-  // D. 🚨 DEFCON (비상 알람) 엔진 🚨
-  const defconBtn = document.getElementById("defcon-btn");
-  const defconPing = document.getElementById("defcon-ping");
-  const defconDot = document.getElementById("defcon-dot");
-  const defconText = document.getElementById("defcon-text");
-  let defconState = 0;
-
-  if (defconBtn) {
-    defconBtn.addEventListener("click", () => {
-      const newState = (defconState + 1) % 3;
-      db.ref("dashboard/defcon").set(newState);
-    });
-  }
-
-  db.ref("dashboard/defcon").on("value", (snap) => {
-    const val = snap.val();
-    defconState = val !== null ? val : 0;
-
-    if (defconState === 0) {
-      if (defconPing)
-        defconPing.className =
-          "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-      if (defconDot)
-        defconDot.className =
-          "relative inline-flex rounded-full h-3 w-3 bg-emerald-500";
-      if (defconText) {
-        defconText.className =
-          "text-emerald-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-emerald-300";
-        defconText.textContent = "전 설비 정상 가동중";
-      }
-      document.body.classList.remove("emergency-mode");
-    } else if (defconState === 1) {
-      if (defconPing)
-        defconPing.className =
-          "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
-      if (defconDot)
-        defconDot.className =
-          "relative inline-flex rounded-full h-3 w-3 bg-amber-500";
-      if (defconText) {
-        defconText.className =
-          "text-amber-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-amber-300";
-        defconText.textContent = "⚠️ 일부 설비 점검중";
-      }
-      document.body.classList.remove("emergency-mode");
-    } else if (defconState === 2) {
-      if (defconPing)
-        defconPing.className =
-          "fast-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75";
-      if (defconDot)
-        defconDot.className =
-          "relative inline-flex rounded-full h-3 w-3 bg-rose-600";
-      if (defconText) {
-        defconText.className =
-          "text-rose-500 font-black tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors animate-pulse drop-shadow-[0_0_8px_rgba(225,29,72,0.8)]";
-        defconText.textContent = "🚨 비상: 이상 발생!";
-      }
-      document.body.classList.add("emergency-mode");
+  // =========================================================================
+  // 🛡️ 2. 핵심 보안! 신분증 확인 후 데이터베이스 통신 연결 
+  // =========================================================================
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // 로그인 인증 성공! -> Firebase DB 연동 시작
+        setupDatabaseSync();
+    } else {
+        // 미인증자는 로그인 화면으로 강제 이동
+        window.location.replace("index.html");
     }
   });
 
-  // 🍒 [NEW] E. 저장탱크 '입력시간' 퀵-버튼 동기화 엔진
-  const tankTimeBtns = document.querySelectorAll(".tank-time-btn");
-  if (tankTimeBtns.length > 0) {
-    // 버튼 클릭 시 Firebase에 값 전송
-    tankTimeBtns.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const selectedTime = e.target.getAttribute("data-time");
-        db.ref("dashboard/tank_input_time").set(selectedTime);
+  function setupDatabaseSync() {
+      const allInputs = document.querySelectorAll('input[type="text"]');
+      allInputs.forEach((input, index) => {
+        const syncKey = input.id || "input_idx_" + index;
+        input.addEventListener("input", (e) => { db.ref("dashboard/inputs/" + syncKey).set(e.target.value); });
       });
-    });
 
-    // Firebase에서 값 받아서 UI 업데이트
-    db.ref("dashboard/tank_input_time").on("value", (snap) => {
-      const val = snap.val() || "06"; // 기본값은 06시
-      tankTimeBtns.forEach((btn) => {
-        if (btn.getAttribute("data-time") === val) {
-          // 선택된 버튼 디자인 (에메랄드)
-          btn.className =
-            "tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)]";
-        } else {
-          // 비활성 버튼 디자인 (어두운 슬레이트)
-          btn.className =
-            "tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200";
+      db.ref("dashboard/inputs").on("value", (snapshot) => {
+        const data = snapshot.val() || {};
+        allInputs.forEach((input, index) => {
+          const syncKey = input.id || "input_idx_" + index;
+          if (data[syncKey] !== undefined && document.activeElement !== input) {
+            if (input.value !== data[syncKey]) {
+              input.value = data[syncKey];
+              input.dispatchEvent(new Event("input"));
+            }
+          }
+        });
+      });
+
+      const dateInput = document.getElementById("date-input");
+      const dateSyncKey = "dashboard/production_date";
+      if (dateInput) {
+        db.ref(dateSyncKey).on("value", (snapshot) => {
+          const savedDate = snapshot.val();
+          if (savedDate && document.activeElement !== dateInput) { dateInput.value = savedDate; }
+        });
+        dateInput.addEventListener("change", (e) => { db.ref(dateSyncKey).set(e.target.value); });
+      }
+
+      const toggleGroups = document.querySelectorAll(".toggle-group");
+      toggleGroups.forEach((group, index) => {
+        const onBtn = group.querySelector(".on-btn"), offBtn = group.querySelector(".off-btn"), syncKey = "toggle_idx_" + index;
+        onBtn.addEventListener("click", () => { db.ref("dashboard/toggles/" + syncKey).set("ON"); });
+        offBtn.addEventListener("click", () => { db.ref("dashboard/toggles/" + syncKey).set("OFF"); });
+      });
+
+      db.ref("dashboard/toggles").on("value", (snapshot) => {
+        const data = snapshot.val() || {};
+        toggleGroups.forEach((group, index) => {
+          const syncKey = "toggle_idx_" + index, currentState = data[syncKey];
+          const onBtn = group.querySelector(".on-btn"), offBtn = group.querySelector(".off-btn");
+          if (currentState === "ON") {
+            onBtn.className = "toggle-btn on-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)] opacity-100";
+            offBtn.className = "toggle-btn off-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-transparent text-rose-500 opacity-20 hover:opacity-50";
+          } else if (currentState === "OFF") {
+            offBtn.className = "toggle-btn off-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.8)] opacity-100";
+            onBtn.className = "toggle-btn on-btn px-2 py-0.5 rounded-full text-[9px] font-black transition-all duration-300 bg-transparent text-emerald-500 opacity-20 hover:opacity-50";
+          }
+        });
+      });
+
+      const defconBtn = document.getElementById("defcon-btn"), defconPing = document.getElementById("defcon-ping"), defconDot = document.getElementById("defcon-dot"), defconText = document.getElementById("defcon-text");
+      let defconState = 0;
+      if (defconBtn) {
+        defconBtn.addEventListener("click", () => {
+          const newState = (defconState + 1) % 3;
+          db.ref("dashboard/defcon").set(newState);
+        });
+      }
+      db.ref("dashboard/defcon").on("value", (snap) => {
+        const val = snap.val();
+        defconState = val !== null ? val : 0;
+        if (defconState === 0) {
+          if (defconPing) defconPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+          if (defconDot) defconDot.className = "relative inline-flex rounded-full h-3 w-3 bg-emerald-500";
+          if (defconText) { defconText.className = "text-emerald-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-emerald-300"; defconText.textContent = "전 설비 정상 가동중"; }
+          document.body.classList.remove("emergency-mode");
+        } else if (defconState === 1) {
+          if (defconPing) defconPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+          if (defconDot) defconDot.className = "relative inline-flex rounded-full h-3 w-3 bg-amber-500";
+          if (defconText) { defconText.className = "text-amber-400 font-bold tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors group-hover:text-amber-300"; defconText.textContent = "⚠️ 일부 설비 점검중"; }
+          document.body.classList.remove("emergency-mode");
+        } else if (defconState === 2) {
+          if (defconPing) defconPing.className = "fast-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75";
+          if (defconDot) defconDot.className = "relative inline-flex rounded-full h-3 w-3 bg-rose-600";
+          if (defconText) { defconText.className = "text-rose-500 font-black tracking-widest text-sm w-[170px] text-center whitespace-nowrap transition-colors animate-pulse drop-shadow-[0_0_8px_rgba(225,29,72,0.8)]"; defconText.textContent = "🚨 비상: 이상 발생!"; }
+          document.body.classList.add("emergency-mode");
         }
       });
-    });
-  }
+
+      const tankTimeBtns = document.querySelectorAll(".tank-time-btn");
+      if (tankTimeBtns.length > 0) {
+        tankTimeBtns.forEach((btn) => {
+          btn.addEventListener("click", (e) => { db.ref("dashboard/tank_input_time").set(e.target.getAttribute("data-time")); });
+        });
+        db.ref("dashboard/tank_input_time").on("value", (snap) => {
+          const val = snap.val() || "06"; 
+          tankTimeBtns.forEach((btn) => {
+            if (btn.getAttribute("data-time") === val) {
+              btn.className = "tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.8)]";
+            } else {
+              btn.className = "tank-time-btn px-3 py-1 rounded text-xs font-black transition-all bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200";
+            }
+          });
+        });
+      }
+
+      // ==========================================
+      // 🍒 [핵심 기능] 근무일지 N뱃지 실시간 감시 로직
+      // ==========================================
+      const badgeEl = document.getElementById("work-log-badge");
+      if (badgeEl) {
+        db.ref("notifications/work_log_updated").on("value", (snap) => {
+          const lastUpdated = snap.val() || 0;
+          const lastViewed = parseInt(localStorage.getItem("workLogLastViewed") || "0", 10);
+          
+          // DB 시간이 내가 확인한 시간보다 크면 N뱃지 띄우기!
+          if (lastUpdated > lastViewed) {
+            badgeEl.classList.remove("hidden");
+          } else {
+            badgeEl.classList.add("hidden");
+          }
+        });
+      }
+  } // end of setupDatabaseSync
+
+  // ==========================================
+  // 🍒 [전역 함수] 근무일지 열기 (버튼 클릭 시 실행)
+  // ==========================================
+  window.openWorkLog = function() {
+      // 1. 현재 클릭한 시간을 로컬 저장소에 기록 (나 확인했음!)
+      localStorage.setItem("workLogLastViewed", Date.now().toString());
+      
+      // 2. N뱃지를 즉시 숨김
+      const badgeEl = document.getElementById("work-log-badge");
+      if (badgeEl) badgeEl.classList.add("hidden");
+      
+      // 3. 근무일지 팝업창 띄우기
+      window.open('work_log.html', '_blank', 'width=1400,height=950,scrollbars=yes');
+  };
+
 });

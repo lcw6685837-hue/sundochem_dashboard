@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUNDOCHEM 관제시스템 로그인</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', sans-serif; background-color: #0b1120; }
         
-        /* 반투명 유리 효과 (Glassmorphism) */
         .glass-panel {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
@@ -36,10 +44,10 @@
 
         <div class="flex flex-col gap-4">
             <div>
-                <label class="block text-slate-400 text-xs font-bold mb-1 ml-1 tracking-wider">아이디</label>
+                <label class="block text-slate-400 text-xs font-bold mb-1 ml-1 tracking-wider">아이디 (이메일)</label>
                 <div class="relative">
-                    <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                    <input type="text" id="login-id" placeholder="ID를 입력하세요" 
+                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                    <input type="email" id="login-id" placeholder="등록된 이메일을 입력하세요" 
                            class="w-full bg-[#0f172a] border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
                 </div>
             </div>
@@ -50,48 +58,74 @@
                     <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
                     <input type="password" id="login-pw" placeholder="비밀번호를 입력하세요" 
                            class="w-full bg-[#0f172a] border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                           onkeypress="if(event.keyCode===13) checkLogin()"> </div>
+                           onkeypress="if(event.keyCode===13) checkLogin()"> 
+                </div>
             </div>
 
-            <p id="error-msg" class="text-rose-500 text-xs font-bold text-center h-4 opacity-0 transition-opacity">아이디 또는 비밀번호가 틀렸습니다.</p>
+            <p id="error-msg" class="text-rose-500 text-xs font-bold text-center h-4 opacity-0 transition-opacity">에러 메시지</p>
 
-            <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black tracking-widest py-3 rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all mt-2 active:scale-95">
-                SYSTEM LOGIN
+            <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black tracking-widest py-3 rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all mt-2 active:scale-95 flex items-center justify-center gap-2">
+                <span id="btn-text">SYSTEM LOGIN</span>
+                <i id="btn-spinner" class="fas fa-circle-notch fa-spin hidden"></i>
             </button>
         </div>
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
+            authDomain: "sundochem-dashboard.firebaseapp.com",
+            databaseURL: "https://sundochem-dashboard-default-rtdb.firebaseio.com",
+            projectId: "sundochem-dashboard",
+            storageBucket: "sundochem-dashboard.firebasestorage.app",
+            messagingSenderId: "360796635566",
+            appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+
+        // 이미 로그인 되어있다면 대시보드로 자동 이동
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) { window.location.replace("dashboard.html"); }
+        });
+
         function checkLogin() {
-            const id = document.getElementById('login-id').value;
+            const email = document.getElementById('login-id').value;
             const pw = document.getElementById('login-pw').value;
+            const btnText = document.getElementById('btn-text');
+            const btnSpinner = document.getElementById('btn-spinner');
             const errorMsg = document.getElementById('error-msg');
 
-            // 🍒 [보안 세팅 구역] 🍒
-            // 창우님! 깃허브에 올리기 직전에 아래 'sundo'와 '1234'를 진짜 아이디/비번으로 수정하세요!
-            const correctID = "sundo"; 
-            const correctPW = "1234";
-
-            if (id === correctID && pw === correctPW) {
-                // 💡 [핵심] 로그인 성공 시 'VIP 출입증' 발급!
-                sessionStorage.setItem('sundo_auth', 'true'); 
-                
-                errorMsg.style.opacity = '0';
-                window.location.href = 'dashboard.html';
-            } else {
-                // 로그인 실패! (에러 메시지 띄우고 박스 흔들기)
-                errorMsg.style.opacity = '1';
-                
-                const panel = document.querySelector('.glass-panel');
-                panel.animate([
-                    { transform: 'translateX(0px)' },
-                    { transform: 'translateX(-10px)' },
-                    { transform: 'translateX(10px)' },
-                    { transform: 'translateX(-10px)' },
-                    { transform: 'translateX(10px)' },
-                    { transform: 'translateX(0px)' }
-                ], { duration: 400 });
+            if(!email || !pw) {
+                showError("이메일과 비밀번호를 모두 입력해주세요.");
+                return;
             }
+
+            btnText.textContent = "인증 확인 중...";
+            btnSpinner.classList.remove('hidden');
+            errorMsg.style.opacity = '0';
+
+            // 💡 [핵심] 구글 서버로 직접 로그인 요청
+            firebase.auth().signInWithEmailAndPassword(email, pw)
+                .then((userCredential) => {
+                    // 로그인 성공 시 onAuthStateChanged가 반응하여 자동 이동됨
+                })
+                .catch((error) => {
+                    btnText.textContent = "SYSTEM LOGIN";
+                    btnSpinner.classList.add('hidden');
+                    showError("아이디 또는 비밀번호가 일치하지 않습니다.");
+                });
+        }
+
+        function showError(msg) {
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.textContent = msg;
+            errorMsg.style.opacity = '1';
+            const panel = document.querySelector('.glass-panel');
+            panel.animate([
+                { transform: 'translateX(0px)' }, { transform: 'translateX(-10px)' },
+                { transform: 'translateX(10px)' }, { transform: 'translateX(-10px)' },
+                { transform: 'translateX(10px)' }, { transform: 'translateX(0px)' }
+            ], { duration: 400 });
         }
     </script>
 </body>

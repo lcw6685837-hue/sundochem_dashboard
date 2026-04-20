@@ -2,13 +2,10 @@
 <html lang="ko">
 <head>
     <script>
-        // 1. 보안 문지기
-        if (sessionStorage.getItem('sundo_auth') !== 'true') {
-            alert("🔒 정상적인 로그인이 필요합니다!");
-            window.location.replace("index.html");
-        }
+        // 🍒 [변경] 불안정했던 구형 sessionStorage 로직은 삭제했습니다.
+        // 이제 하단의 스마트 도어락(Auth)이 출입을 통제합니다!
 
-        // 2. 전체화면 제어 엔진 (달력에도 추가!)
+        // 전체화면 제어 엔진
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -25,10 +22,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUNDOCHEM 월간계획표</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
     <style>
@@ -121,7 +124,10 @@
             messagingSenderId: "360796635566",
             appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f"
         };
-        firebase.initializeApp(firebaseConfig);
+        // 안정성 보완: 중복 초기화 방지
+        if (!firebase.apps.length) { 
+            firebase.initializeApp(firebaseConfig); 
+        }
         const db = firebase.database();
         let cloudData = {}; 
 
@@ -134,104 +140,137 @@
             const nextMonthEventsInput = document.getElementById('next-month-events');
             const remarksInput = document.getElementById('remarks-input');
 
-            document.addEventListener('focusin', (e) => { if (e.target.tagName === 'TEXTAREA') activeTextarea = e.target; });
-
-            document.querySelectorAll('.color-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    if (!activeTextarea || !e.isTrusted) return; 
-                    const selectedColor = e.target.getAttribute('data-color');
-                    activeTextarea.style.color = selectedColor; 
-                    db.ref('calendar/' + activeTextarea.id).update({ color: selectedColor });
-                });
+            // 🛡️ [핵심 보완] 신분증(Auth) 확인 후 달력 렌더링 및 데이터베이스 연결 
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    // 인증 통과 시에만 달력 설정 시작!
+                    setupCalendar();
+                } else {
+                    // 미인증자는 로그인 화면으로 즉시 튕겨냄
+                    window.location.replace("index.html");
+                }
             });
 
-            function renderCalendar() {
-                calendarGrid.innerHTML = ''; 
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth();
-                monthDisplay.textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월`;
+            function setupCalendar() {
+                // 커서 위치 추적
+                document.addEventListener('focusin', (e) => { 
+                    if (e.target.tagName === 'TEXTAREA') activeTextarea = e.target; 
+                });
 
-                const firstDayIndex = new Date(year, month, 1).getDay();
-                const lastDate = new Date(year, month + 1, 0).getDate();
-                const prevLastDate = new Date(year, month, 0).getDate();
-                const today = new Date();
-                const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
-                const monthKey = `plan_${year}_${month + 1}`; 
-                
-                for (let i = firstDayIndex; i > 0; i--) {
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell rounded opacity-30 cursor-not-allowed';
-                    cell.innerHTML = `<span class="date-badge">${prevLastDate - i + 1}</span>`;
-                    calendarGrid.appendChild(cell);
-                }
+                // 컬러 버튼 이벤트 연결
+                document.querySelectorAll('.color-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (!activeTextarea || !e.isTrusted) return; 
+                        const selectedColor = e.target.getAttribute('data-color');
+                        activeTextarea.style.color = selectedColor; 
+                        db.ref('calendar/' + activeTextarea.id).update({ color: selectedColor });
+                    });
+                });
 
-                for (let day = 1; day <= lastDate; day++) {
-                    const cell = document.createElement('div');
-                    const dayOfWeek = new Date(year, month, day).getDay();
-                    let dayClass = 'grid-cell rounded flex flex-col pt-7 px-1 pb-1';
-                    if (dayOfWeek === 0) dayClass += ' sunday';
-                    if (dayOfWeek === 6) dayClass += ' saturday';
-                    if (isCurrentMonth && day === today.getDate()) dayClass += ' today';
-                    cell.className = dayClass;
+                // 달력 그리기 로직
+                function renderCalendar() {
+                    calendarGrid.innerHTML = ''; 
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth();
+                    monthDisplay.textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월`;
 
-                    const cellId = `${monthKey}_day_${day}`;
-                    const savedText = cloudData[cellId] ? cloudData[cellId].text : '';
-                    const savedColor = cloudData[cellId] ? cloudData[cellId].color : '#f8fafc'; 
-
-                    cell.innerHTML = `
-                        <span class="date-badge">${day}</span>
-                        <textarea id="${cellId}" class="flex-1" style="color: ${savedColor};" placeholder="...">${savedText}</textarea>
-                    `;
+                    const firstDayIndex = new Date(year, month, 1).getDay();
+                    const lastDate = new Date(year, month + 1, 0).getDate();
+                    const prevLastDate = new Date(year, month, 0).getDate();
+                    const today = new Date();
+                    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+                    const monthKey = `plan_${year}_${month + 1}`; 
                     
-                    const textarea = cell.querySelector('textarea');
-                    textarea.addEventListener('input', (e) => {
-                        if(e.isTrusted) {
-                            const color = textarea.style.color || '#f8fafc';
-                            db.ref('calendar/' + cellId).set({ text: e.target.value, color: color });
+                    // 이전 달 빈칸 채우기
+                    for (let i = firstDayIndex; i > 0; i--) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell rounded opacity-30 cursor-not-allowed';
+                        cell.innerHTML = `<span class="date-badge">${prevLastDate - i + 1}</span>`;
+                        calendarGrid.appendChild(cell);
+                    }
+
+                    // 이번 달 날짜 그리기
+                    for (let day = 1; day <= lastDate; day++) {
+                        const cell = document.createElement('div');
+                        const dayOfWeek = new Date(year, month, day).getDay();
+                        let dayClass = 'grid-cell rounded flex flex-col pt-7 px-1 pb-1';
+                        
+                        if (dayOfWeek === 0) dayClass += ' sunday';
+                        if (dayOfWeek === 6) dayClass += ' saturday';
+                        if (isCurrentMonth && day === today.getDate()) dayClass += ' today';
+                        cell.className = dayClass;
+
+                        const cellId = `${monthKey}_day_${day}`;
+                        const savedText = cloudData[cellId] ? cloudData[cellId].text : '';
+                        const savedColor = cloudData[cellId] ? cloudData[cellId].color : '#f8fafc'; 
+
+                        cell.innerHTML = `
+                            <span class="date-badge">${day}</span>
+                            <textarea id="${cellId}" class="flex-1" style="color: ${savedColor};" placeholder="...">${savedText}</textarea>
+                        `;
+                        
+                        const textarea = cell.querySelector('textarea');
+                        textarea.addEventListener('input', (e) => {
+                            if(e.isTrusted) {
+                                const color = textarea.style.color || '#f8fafc';
+                                db.ref('calendar/' + cellId).set({ text: e.target.value, color: color });
+                            }
+                        });
+                        calendarGrid.appendChild(cell);
+                    }
+
+                    // 다음 달 빈칸 채우기
+                    const totalCells = firstDayIndex + lastDate;
+                    const remainingCells = (Math.ceil(totalCells / 7) * 7) - totalCells;
+                    for (let i = 1; i <= remainingCells; i++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell rounded opacity-30 cursor-not-allowed';
+                        cell.innerHTML = `<span class="date-badge">${i}</span>`;
+                        calendarGrid.appendChild(cell);
+                    }
+
+                    // 다음달 주요행사 및 비고란 렌더링
+                    const nextId = `${monthKey}_next_events`;
+                    const remarkId = `${monthKey}_remarks`;
+                    
+                    nextMonthEventsInput.id = nextId;
+                    remarksInput.id = remarkId;
+
+                    nextMonthEventsInput.value = cloudData[nextId] ? cloudData[nextId].text : '';
+                    nextMonthEventsInput.style.color = cloudData[nextId] ? cloudData[nextId].color : '#fef08a'; 
+                    remarksInput.value = cloudData[remarkId] ? cloudData[remarkId].text : '';
+                    remarksInput.style.color = cloudData[remarkId] ? cloudData[remarkId].color : '#a7f3d0'; 
+
+                    nextMonthEventsInput.oninput = (e) => { if(e.isTrusted) db.ref('calendar/' + nextId).set({ text: e.target.value, color: e.target.style.color }); }
+                    remarksInput.oninput = (e) => { if(e.isTrusted) db.ref('calendar/' + remarkId).set({ text: e.target.value, color: e.target.style.color }); }
+                } // renderCalendar 끝
+
+                // 먼저 달력을 한번 그리고 통신을 대기
+                renderCalendar();
+
+                // DB 실시간 감시 (인증이 통과되었으므로 안전하게 접근 가능)
+                db.ref('calendar').on('value', snapshot => {
+                    cloudData = snapshot.val() || {};
+                    document.querySelectorAll('textarea').forEach(textarea => {
+                        const id = textarea.id;
+                        if (cloudData[id] && document.activeElement !== textarea) {
+                            textarea.value = cloudData[id].text || '';
+                            textarea.style.color = cloudData[id].color || '#f8fafc';
                         }
                     });
-                    calendarGrid.appendChild(cell);
-                }
-
-                const totalCells = firstDayIndex + lastDate;
-                const remainingCells = (Math.ceil(totalCells / 7) * 7) - totalCells;
-                for (let i = 1; i <= remainingCells; i++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell rounded opacity-30 cursor-not-allowed';
-                    cell.innerHTML = `<span class="date-badge">${i}</span>`;
-                    calendarGrid.appendChild(cell);
-                }
-
-                const nextId = `${monthKey}_next_events`;
-                const remarkId = `${monthKey}_remarks`;
-                
-                nextMonthEventsInput.id = nextId;
-                remarksInput.id = remarkId;
-
-                nextMonthEventsInput.value = cloudData[nextId] ? cloudData[nextId].text : '';
-                nextMonthEventsInput.style.color = cloudData[nextId] ? cloudData[nextId].color : '#fef08a'; 
-                remarksInput.value = cloudData[remarkId] ? cloudData[remarkId].text : '';
-                remarksInput.style.color = cloudData[remarkId] ? cloudData[remarkId].color : '#a7f3d0'; 
-
-                nextMonthEventsInput.oninput = (e) => { if(e.isTrusted) db.ref('calendar/' + nextId).set({ text: e.target.value, color: e.target.style.color }); }
-                remarksInput.oninput = (e) => { if(e.isTrusted) db.ref('calendar/' + remarkId).set({ text: e.target.value, color: e.target.style.color }); }
-            }
-
-            renderCalendar();
-
-            db.ref('calendar').on('value', snapshot => {
-                cloudData = snapshot.val() || {};
-                document.querySelectorAll('textarea').forEach(textarea => {
-                    const id = textarea.id;
-                    if (cloudData[id] && document.activeElement !== textarea) {
-                        textarea.value = cloudData[id].text || '';
-                        textarea.style.color = cloudData[id].color || '#f8fafc';
-                    }
                 });
-            });
 
-            document.getElementById('prev-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
-            document.getElementById('next-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
+                // 좌우 화살표 클릭 시 달력 재렌더링
+                document.getElementById('prev-month').addEventListener('click', () => { 
+                    currentDate.setMonth(currentDate.getMonth() - 1); 
+                    renderCalendar(); 
+                });
+                
+                document.getElementById('next-month').addEventListener('click', () => { 
+                    currentDate.setMonth(currentDate.getMonth() + 1); 
+                    renderCalendar(); 
+                });
+            } // setupCalendar 끝
         });
     </script>
 </body>
