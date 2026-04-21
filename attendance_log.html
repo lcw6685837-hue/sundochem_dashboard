@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script>
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUNDOCHEM 출근일지</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; background-color: #0b1120; color: #e2e8f0; }
+        
+        .log-container { background-color: #1e293b; border: 4px solid #ec4899; border-radius: 12px; box-shadow: 0 0 20px rgba(236, 72, 153, 0.2); }
+        
+        .diag-header {
+            background: linear-gradient(to top right, #1e293b 49%, #475569 50%, #1e293b 51%);
+            position: relative;
+        }
+
+        .att-row { 
+            display: grid; 
+            grid-template-columns: 140px 1fr 1fr 1fr; 
+            border-bottom: 1px solid #334155; 
+        }
+        .att-row:last-child { border-bottom: none; }
+        
+        .att-label { 
+            background: #1e293b; 
+            color: #cbd5e1; 
+            font-weight: 900; 
+            text-align: center; 
+            padding: 0.75rem; 
+            border-right: 1px solid #334155; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.05rem;
+        }
+        .att-cell { 
+            border-right: 1px solid #334155; 
+            background: #0f172a; 
+            transition: background 0.3s;
+        }
+        .att-cell:last-child { border-right: none; }
+        .att-cell:focus-within { background: rgba(236, 72, 153, 0.05); }
+
+        .att-input { 
+            width: 100%; 
+            height: 100%; 
+            background: transparent; 
+            border: none; 
+            outline: none; 
+            color: #e2e8f0; 
+            padding: 0.75rem; 
+            font-size: 1.15rem; 
+            text-align: center; 
+            font-weight: 600; 
+        }
+        .att-textarea { 
+            width: 100%; 
+            min-height: 80px; 
+            background: transparent; 
+            border: none; 
+            outline: none; 
+            color: #e2e8f0; 
+            padding: 0.75rem; 
+            font-size: 1.1rem; 
+            resize: none; 
+            overflow: hidden; 
+            line-height: 1.6;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #0f172a; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; transform: scale(1.3); margin-left: 5px; }
+
+        /* 🍒 프린트 전용 CSS: 세로 인쇄 1줄 강제 정렬의 마법 */
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            
+            body { background-color: #ffffff !important; color: #000000 !important; display: block !important; height: auto !important; padding: 0 !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: transparent !important; color: #000000 !important; border-color: #000000 !important; box-shadow: none !important; text-shadow: none !important; }
+            
+            .bg-clip-text { -webkit-text-fill-color: #000000 !important; background: none !important; }
+            .print-wrapper { width: 100% !important; margin: 0 auto !important; display: block !important; }
+            .no-print { display: none !important; }
+            
+            /* 표 테두리 강렬하게 */
+            .log-container { border: 2px solid #000 !important; flex: none !important; height: auto !important; margin: 0 !important; overflow: visible !important; }
+            
+            /* 💡 핵심: 줄바꿈 절대 방지 및 폰트 축소 */
+            .nowrap-print { white-space: nowrap !important; letter-spacing: 0 !important; }
+            .print-sm-text { font-size: 12px !important; letter-spacing: 0 !important; }
+            .print-title { font-size: 24px !important; letter-spacing: 0 !important; white-space: nowrap !important; }
+            .print-icon { font-size: 24px !important; margin-right: 8px !important; }
+            
+            /* 표 내부 그리드 압축 (구분칸을 70px로 줄여 내용 칸 확보) */
+            .att-row { grid-template-columns: 70px 1fr 1fr 1fr !important; page-break-inside: avoid; border-bottom: 1px solid #000 !important; }
+            .att-label { font-size: 13px !important; padding: 4px !important; flex-direction: column !important; }
+            .att-input, .att-textarea { font-size: 13px !important; padding: 4px !important; min-height: 50px !important; }
+            
+            /* 대각선 선명하게 */
+            .diag-header { background: linear-gradient(to top right, #ffffff 49.5%, #000000 50%, #ffffff 50.5%) !important; min-height: 40px !important; }
+            
+            ::placeholder { color: transparent !important; }
+            input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
+            ::-webkit-scrollbar { display: none !important; }
+        }
+    </style>
+</head>
+<body class="p-4 min-h-screen flex flex-col">
+
+    <div class="print-wrapper flex-1 flex flex-col max-w-7xl mx-auto w-full">
+        
+        <div class="flex justify-between items-center mb-4 flex-nowrap">
+            <div class="flex items-center gap-4 flex-nowrap">
+                <i class="fas fa-id-badge text-[2.5rem] text-pink-500 no-print"></i>
+                <i class="fas fa-id-badge text-black hidden print:block print-icon"></i>
+                <h1 class="text-[2.5rem] font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 tracking-widest drop-shadow-md print-title">출 근 일 지</h1>
+            </div>
+            
+            <div class="flex items-center gap-2 bg-slate-800 px-6 py-2.5 rounded-full border border-slate-600 shadow-inner flex-nowrap print:px-3 print:py-1 print:border-black print:gap-1">
+                <span class="text-slate-400 font-black text-lg tracking-widest print:text-black nowrap-print print-sm-text">근무일자:</span>
+                <input type="date" id="log-date" class="bg-transparent border-none text-2xl font-black text-amber-300 outline-none cursor-pointer print:text-black nowrap-print print-sm-text w-[180px] print:w-[110px]">
+                <span id="log-day" class="text-2xl font-black text-amber-300 print:text-black nowrap-print print-sm-text"></span>
+            </div>
+            
+            <div class="flex gap-2 no-print shrink-0">
+                <button onclick="toggleFullScreen()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition flex items-center gap-2"><i class="fas fa-expand"></i> 전체화면</button>
+                <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition"><i class="fas fa-print mr-2"></i>인쇄</button>
+                <button onclick="window.close()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded border border-rose-500 font-bold transition"><i class="fas fa-times mr-2"></i>닫기</button>
+            </div>
+        </div>
+
+        <div class="log-container flex-1 flex flex-col overflow-hidden">
+            <div class="flex-1 flex flex-col border border-slate-600 print:border-0 rounded-lg overflow-hidden m-2 print:m-0 bg-slate-800">
+                
+                <div class="att-row bg-[#1e293b] border-b-2 border-slate-500 print:border-b-[2px]">
+                    <div class="diag-header border-r border-slate-600">
+                        <span class="absolute bottom-2 left-4 text-slate-400 font-black tracking-widest print-sm-text print:bottom-1 print:left-1">구분</span>
+                        <span class="absolute top-2 right-4 text-slate-400 font-black tracking-widest print-sm-text print:top-1 print:right-1">시간</span>
+                    </div>
+                    <div class="flex items-center justify-center font-black text-purple-300 tracking-widest bg-purple-900/20 text-lg border-r border-slate-600 nowrap-print print-sm-text print:bg-transparent">00:00 ~ 08:00 (야간)</div>
+                    <div class="flex items-center justify-center font-black text-blue-300 tracking-widest bg-blue-900/20 text-lg border-r border-slate-600 nowrap-print print-sm-text print:bg-transparent">08:00 ~ 16:00 (주간)</div>
+                    <div class="flex items-center justify-center font-black text-emerald-300 tracking-widest bg-emerald-900/20 text-lg nowrap-print print-sm-text print:bg-transparent">16:00 ~ 24:00 (초야)</div>
+                </div>
+
+                <div class="att-row">
+                    <div class="att-label">근 무 자</div>
+                    <div class="att-cell"><textarea id="att_worker_1" class="att-textarea sync-item" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_worker_2" class="att-textarea sync-item" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_worker_3" class="att-textarea sync-item" placeholder="작성..."></textarea></div>
+                </div>
+
+                <div class="att-row">
+                    <div class="att-label">휴무연장</div>
+                    <div class="att-cell"><textarea id="att_extoff_1" class="att-textarea sync-item text-amber-200" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_extoff_2" class="att-textarea sync-item text-amber-200" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_extoff_3" class="att-textarea sync-item text-amber-200" placeholder="작성..."></textarea></div>
+                </div>
+
+                <div class="att-row">
+                    <div class="att-label">연장근로</div>
+                    <div class="att-cell"><textarea id="att_overtime_1" class="att-textarea sync-item text-pink-200" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_overtime_2" class="att-textarea sync-item text-pink-200" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_overtime_3" class="att-textarea sync-item text-pink-200" placeholder="작성..."></textarea></div>
+                </div>
+
+                <div class="att-row">
+                    <div class="att-label py-2">휴 무</div>
+                    <div class="att-cell"><input type="text" id="att_off_1" class="att-input sync-item text-slate-400"></div>
+                    <div class="att-cell"><input type="text" id="att_off_2" class="att-input sync-item text-slate-400"></div>
+                    <div class="att-cell"><input type="text" id="att_off_3" class="att-input sync-item text-slate-400"></div>
+                </div>
+
+                <div class="att-row">
+                    <div class="att-label py-2">연차휴가</div>
+                    <div class="att-cell"><input type="text" id="att_annual_1" class="att-input sync-item text-emerald-200"></div>
+                    <div class="att-cell"><input type="text" id="att_annual_2" class="att-input sync-item text-emerald-200"></div>
+                    <div class="att-cell"><input type="text" id="att_annual_3" class="att-input sync-item text-emerald-200"></div>
+                </div>
+
+                <div class="att-row">
+                    <div class="att-label py-2 nowrap-print">공 가 자</div>
+                    <div class="att-cell"><input type="text" id="att_official_1" class="att-input sync-item text-blue-200"></div>
+                    <div class="att-cell"><input type="text" id="att_official_2" class="att-input sync-item text-blue-200"></div>
+                    <div class="att-cell"><input type="text" id="att_official_3" class="att-input sync-item text-blue-200"></div>
+                </div>
+
+                <div class="att-row">
+                    <div class="att-label py-2 nowrap-print print-sm-text">사외교육 외</div>
+                    <div class="att-cell"><input type="text" id="att_edu_1" class="att-input sync-item"></div>
+                    <div class="att-cell"><input type="text" id="att_edu_2" class="att-input sync-item"></div>
+                    <div class="att-cell"><input type="text" id="att_edu_3" class="att-input sync-item"></div>
+                </div>
+
+                <div class="att-row flex-1">
+                    <div class="att-label flex-col gap-1 print:gap-0"><span class="nowrap-print">용역근로</span><span class="text-xs font-normal text-slate-400 print:text-black nowrap-print print:text-[10px]">(선일기업)</span></div>
+                    <div class="att-cell"><textarea id="att_contract_1" class="att-textarea sync-item text-cyan-200 h-full" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_contract_2" class="att-textarea sync-item text-cyan-200 h-full" placeholder="작성..."></textarea></div>
+                    <div class="att-cell"><textarea id="att_contract_3" class="att-textarea sync-item text-cyan-200 h-full" placeholder="작성..."></textarea></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
+            authDomain: "sundochem-dashboard.firebaseapp.com",
+            databaseURL: "https://sundochem-dashboard-default-rtdb.firebaseio.com",
+            projectId: "sundochem-dashboard",
+            storageBucket: "sundochem-dashboard.firebasestorage.app",
+            messagingSenderId: "360796635566",
+            appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('log-date');
+            const dayDisplay = document.getElementById('log-day'); 
+            const syncItems = document.querySelectorAll('.sync-item');
+            let currentRef = null;
+
+            const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+
+            function updateDayDisplay(dateStr) {
+                const dateObj = new Date(dateStr);
+                if (!isNaN(dateObj)) {
+                    dayDisplay.textContent = daysOfWeek[dateObj.getDay()] + '요일';
+                }
+            }
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+
+            function autoResizeTextarea(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = textarea.scrollHeight + 'px';
+            }
+
+            document.querySelectorAll('textarea').forEach(ta => {
+                ta.addEventListener('input', function() {
+                    autoResizeTextarea(this);
+                });
+            });
+
+            function loadLogData(dateStr) {
+                if (currentRef) currentRef.off();
+                currentRef = db.ref('attendance_logs/' + dateStr);
+                
+                currentRef.on('value', snapshot => {
+                    const data = snapshot.val() || {};
+                    syncItems.forEach(item => {
+                        if (document.activeElement !== item) {
+                            item.value = data[item.id] || '';
+                            if (item.tagName === 'TEXTAREA') {
+                                setTimeout(() => autoResizeTextarea(item), 10);
+                            }
+                        }
+                    });
+                });
+            }
+
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    syncItems.forEach(item => {
+                        item.addEventListener('input', e => {
+                            if (currentRef) {
+                                currentRef.child(e.target.id).set(e.target.value);
+                            }
+                        });
+                    });
+
+                    dateInput.addEventListener('change', e => {
+                        loadLogData(e.target.value);
+                        updateDayDisplay(e.target.value);
+                    });
+
+                    loadLogData(dateInput.value);
+                    updateDayDisplay(dateInput.value);
+                } else {
+                    window.location.replace("index.html");
+                }
+            });
+        });
+
+        function scheduleMidnightRefresh() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+            const msUntilMidnight = tomorrow.getTime() - now.getTime();
+            
+            setTimeout(() => {
+                window.location.reload(true); 
+            }, msUntilMidnight);
+        }
+        scheduleMidnightRefresh();
+    </script>
+</body>
+</html>

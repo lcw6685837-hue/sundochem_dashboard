@@ -85,11 +85,17 @@
                     <span>월간계획</span>
                 </button>
                 
-                <button onclick="openWorkLog()" 
+                <button onclick="window.openWorkLog()" 
                         class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-purple-600 hover:to-purple-700 text-slate-200 hover:text-white border border-slate-500 hover:border-purple-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
                     <i class="fas fa-clipboard-list text-purple-400 group-hover:text-white transition-colors"></i>
                     <span>근무일지</span>
                     <span id="work-log-badge" class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-lg border border-rose-400 animate-bounce hidden">N</span>
+                </button>
+
+                <button onclick="window.open('attendance_log.html', '_blank', 'width=1400,height=950,scrollbars=yes')" 
+                        class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-pink-600 hover:to-pink-700 text-slate-200 hover:text-white border border-slate-500 hover:border-pink-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
+                    <i class="fas fa-user-check text-pink-400 group-hover:text-white transition-colors"></i>
+                    <span>출근일지</span>
                 </button>
                 
                 <button class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-emerald-600 hover:to-emerald-700 text-slate-200 hover:text-white border border-slate-500 hover:border-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
