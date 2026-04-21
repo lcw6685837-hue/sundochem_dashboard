@@ -111,7 +111,7 @@
             .print-title { font-size: 24px !important; letter-spacing: 0 !important; white-space: nowrap !important; }
             .print-icon { font-size: 24px !important; margin-right: 8px !important; }
             
-            /* 표 내부 그리드 압축 (구분칸을 70px로 줄여 내용 칸 확보) */
+            /* 표 내부 그리드 압축 */
             .att-row { grid-template-columns: 70px 1fr 1fr 1fr !important; page-break-inside: avoid; border-bottom: 1px solid #000 !important; }
             .att-label { font-size: 13px !important; padding: 4px !important; flex-direction: column !important; }
             .att-input, .att-textarea { font-size: 13px !important; padding: 4px !important; min-height: 50px !important; }
@@ -138,7 +138,7 @@
             
             <div class="flex items-center gap-2 bg-slate-800 px-6 py-2.5 rounded-full border border-slate-600 shadow-inner flex-nowrap print:px-3 print:py-1 print:border-black print:gap-1">
                 <span class="text-slate-400 font-black text-lg tracking-widest print:text-black nowrap-print print-sm-text">근무일자:</span>
-                <input type="date" id="log-date" class="bg-transparent border-none text-2xl font-black text-amber-300 outline-none cursor-pointer print:text-black nowrap-print print-sm-text w-[180px] print:w-[110px]">
+                <input type="date" id="log-date" class="bg-transparent border-none text-2xl font-black text-amber-300 outline-none cursor-pointer print:text-black nowrap-print print-sm-text w-[210px] print:w-[140px]">
                 <span id="log-day" class="text-2xl font-black text-amber-300 print:text-black nowrap-print print-sm-text"></span>
             </div>
             
