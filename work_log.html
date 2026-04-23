@@ -59,12 +59,10 @@
             .print-wrapper { width: 1000px !important; margin: 0 auto !important; }
             .no-print { display: none !important; }
             
-            /* 인쇄 시 레이아웃 수축 */
             .log-container { flex: none !important; height: auto !important; border: 1px solid #000000 !important; margin: 0 !important; padding: 3mm !important; gap: 2px !important; overflow: visible !important;}
             .gap-5 { gap: 2px !important; }
             .mt-2 { mt-1 !important; }
             
-            /* 서명칸 높이 압축하여 공간 확보 */
             .sign-cell-box { height: 60px !important; }
             .sign-label-box { height: 25px !important; py: 0 !important; }
             
@@ -129,7 +127,7 @@
                             <div class="grid grid-cols-3 bg-[#0f172a] print:bg-transparent border-b border-r border-slate-600 print:border-black w-[75%] rounded-br-lg overflow-hidden flex-1">
                                 <div class="bg-slate-700/60 print:bg-transparent border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">야간조장</div>
                                 <div class="bg-slate-700/60 print:bg-transparent border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">주간조장</div>
-                                <div class="bg-slate-700/60 print:bg-transparent border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">초야조장</div>
+                                <div class="bg-slate-700/60 print:bg-transparent border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">초야조장</div>
                                 <div class="border-r border-slate-600 print:border-black sign-cell-box"><textarea id="val_sign_yagan" class="cell-input text-blue-300 print:text-black sync-item resize-none pt-2.5" placeholder="(서명)"></textarea></div>
                                 <div class="border-r border-slate-600 print:border-black sign-cell-box"><textarea id="val_sign_jugan" class="cell-input text-blue-300 print:text-black sync-item resize-none pt-2.5" placeholder="(서명)"></textarea></div>
                                 <div class="sign-cell-box"><textarea id="val_sign_choya" class="cell-input text-blue-300 print:text-black sync-item resize-none pt-2.5" placeholder="(서명)"></textarea></div>
@@ -168,15 +166,15 @@
                 <div class="grid-table flex-1 grid grid-cols-3 print:border-black">
                     <div class="grid-cell print:border-black flex flex-col border-r border-slate-600 print:border-r">
                         <div class="grid-header text-purple-300 print:text-black tracking-widest bg-purple-900/10 print:bg-transparent print:border-black font-bold text-sm">00:00 ~ 08:00 (야간)</div>
-                        <textarea id="val_shift_1" class="cell-input left-align flex-1 sync-item min-h-[120px] print:min-h-[80px]" placeholder="특이사항 기록..."></textarea>
+                        <textarea id="val_shift_1" class="cell-input left-align flex-1 sync-item min-h-[234px] print:min-h-[156px]" placeholder="특이사항 기록..."></textarea>
                     </div>
                     <div class="grid-cell print:border-black flex flex-col border-r border-slate-600 print:border-r">
                         <div class="grid-header text-blue-300 print:text-black tracking-widest bg-blue-900/10 print:bg-transparent print:border-black font-bold text-sm">08:00 ~ 16:00 (주간)</div>
-                        <textarea id="val_shift_2" class="cell-input left-align flex-1 sync-item min-h-[120px] print:min-h-[80px]" placeholder="특이사항 기록..."></textarea>
+                        <textarea id="val_shift_2" class="cell-input left-align flex-1 sync-item min-h-[234px] print:min-h-[156px]" placeholder="특이사항 기록..."></textarea>
                     </div>
                     <div class="grid-cell print:border-black flex flex-col">
                         <div class="grid-header text-emerald-300 print:text-black tracking-widest bg-emerald-900/10 print:bg-transparent print:border-black font-bold text-sm">16:00 ~ 24:00 (초야)</div>
-                        <textarea id="val_shift_3" class="cell-input left-align flex-1 sync-item min-h-[120px] print:min-h-[80px]" placeholder="특이사항 기록..."></textarea>
+                        <textarea id="val_shift_3" class="cell-input left-align flex-1 sync-item min-h-[234px] print:min-h-[156px]" placeholder="특이사항 기록..."></textarea>
                     </div>
                 </div>
             </div>
