@@ -28,7 +28,7 @@
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', sans-serif; background-color: #0b1120; color: #e2e8f0; }
         
-        .log-container { background-color: #1e293b; border: 1px solid #8b5cf6; border-radius: 12px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
+        .log-container { background-color: #1e293b; border: 4px solid #8b5cf6; border-radius: 12px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
         
         .section-title { color: #cbd5e1; font-size: 1.15rem; font-weight: 800; margin-bottom: 0.5rem; display: flex; align-items: center; }
         .input-box { background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; color: #f8fafc; padding: 0.75rem; width: 100%; outline: none; transition: border-color 0.2s; font-size: 1.1rem; }
@@ -48,31 +48,44 @@
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #0f172a; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; transform: scale(1.3); margin-left: 5px; }
 
-        /* 🍒 1페이지 압축 인쇄 최적화 엔진 */
+        /* 🍒 100% 만족 인쇄 최적화 엔진 (선 굵기 중복 완벽 해결) */
         @media print {
             @page { size: A4 portrait; margin: 8mm; }
             body { background-color: #ffffff !important; color: #000000 !important; display: block !important; height: auto !important; padding: 0 !important; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: transparent !important; color: #000000 !important; border-color: #000000 !important; box-shadow: none !important; text-shadow: none !important; }
+            
+            /* 🍒 모든 요소의 선 두께는 화면 설정을 따르되, 색상만 흑백으로 강제 변환 */
+            * { 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                background-color: transparent !important; 
+                color: #000000 !important; 
+                border-color: #000000 !important; 
+                box-shadow: none !important; 
+                text-shadow: none !important; 
+            }
+            
+            /* ❌ 두꺼워지는 원인이었던 강제 사방 테두리 할당 코드 삭제 완료 */
+            .input-box { border: 1px solid #000000 !important; }
+            
             .bg-clip-text { -webkit-text-fill-color: #000000 !important; background: none !important; }
             .section-title span { background-color: #000000 !important; } 
             
             .print-wrapper { width: 1000px !important; margin: 0 auto !important; }
             .no-print { display: none !important; }
             
-            .log-container { flex: none !important; height: auto !important; border: 1px solid #000000 !important; margin: 0 !important; padding: 3mm !important; gap: 2px !important; overflow: visible !important;}
+            /* 인쇄 시 레이아웃 수축 및 선명화 */
+            .log-container { flex: none !important; height: auto !important; border: 1px solid #000000 !important; margin: 0 !important; padding: 2mm !important; gap: 2px !important; overflow: visible !important;}
             .gap-5 { gap: 2px !important; }
-            .mt-2 { mt-1 !important; }
+            .mt-1 { mt-0.5 !important; }
             
-            .sign-cell-box { height: 60px !important; }
-            .sign-label-box { height: 25px !important; py: 0 !important; }
+            /* 서명칸 압축 */
+            .sign-cell-box { height: 55px !important; }
+            .sign-label-box { height: 22px !important; py: 0 !important; font-size: 0.75rem !important; }
             
             ::placeholder { color: transparent !important; }
             input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
-            ::-webkit-scrollbar { display: none !important; }
             
-            .grid-table, .grid-cell, .grid-header, .border, .border-r, .border-b, .border-slate-600, .border-rose-900\/50 { border-color: #000000 !important; border-width: 1px !important; }
-            
-            .section-title { font-size: 0.95rem !important; margin-bottom: 2px !important; }
+            .section-title { font-size: 0.9rem !important; margin-bottom: 2px !important; }
             textarea { font-size: 0.85rem !important; line-height: 1.2 !important; }
             .input-box { padding: 4px !important; }
         }
@@ -102,12 +115,12 @@
             </div>
         </div>
 
-        <div class="log-container flex-1 flex flex-col p-5 gap-5 overflow-y-auto">
+        <div class="log-container flex-1 flex flex-col p-5 gap-2 overflow-y-auto">
             
             <div class="flex gap-5">
                 <div class="flex-1 flex flex-col">
                     <div class="section-title"><span class="w-1 h-5 bg-purple-500 mr-2 rounded-full print:bg-black"></span>사무실 전달사항</div>
-                    <textarea id="val_office_msg" class="input-box flex-1 sync-item font-bold min-h-[96px] print:min-h-[60px]" placeholder="전달사항을 입력하세요..."></textarea>
+                    <textarea id="val_office_msg" class="input-box flex-1 sync-item font-bold min-h-[96px] print:min-h-[55px]" placeholder="전달사항을 입력하세요..."></textarea>
                 </div>
                 
                 <div class="w-[400px] flex flex-col items-end">
@@ -127,7 +140,7 @@
                             <div class="grid grid-cols-3 bg-[#0f172a] print:bg-transparent border-b border-r border-slate-600 print:border-black w-[75%] rounded-br-lg overflow-hidden flex-1">
                                 <div class="bg-slate-700/60 print:bg-transparent border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">야간조장</div>
                                 <div class="bg-slate-700/60 print:bg-transparent border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">주간조장</div>
-                                <div class="bg-slate-700/60 print:bg-transparent border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">초야조장</div>
+                                <div class="bg-slate-700/60 print:bg-transparent border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label-box">초야조장</div>
                                 <div class="border-r border-slate-600 print:border-black sign-cell-box"><textarea id="val_sign_yagan" class="cell-input text-blue-300 print:text-black sync-item resize-none pt-2.5" placeholder="(서명)"></textarea></div>
                                 <div class="border-r border-slate-600 print:border-black sign-cell-box"><textarea id="val_sign_jugan" class="cell-input text-blue-300 print:text-black sync-item resize-none pt-2.5" placeholder="(서명)"></textarea></div>
                                 <div class="sign-cell-box"><textarea id="val_sign_choya" class="cell-input text-blue-300 print:text-black sync-item resize-none pt-2.5" placeholder="(서명)"></textarea></div>
@@ -137,20 +150,20 @@
                 </div>
             </div>
 
-            <div class="flex flex-col mt-2">
+            <div class="flex flex-col mt-1">
                 <div class="section-title"><span class="w-1 h-5 bg-amber-500 mr-2 rounded-full print:bg-black"></span>전력 및 공업용수 검침</div>
                 <div class="grid-table grid grid-cols-12 bg-slate-800 print:bg-transparent print:border-black">
                     <div class="col-span-1 grid-header flex items-center justify-center bg-amber-900/30 text-amber-200 print:bg-transparent print:text-black print:border-black font-bold">전력</div>
                     <div class="col-span-2 flex flex-col p-0 border-r border-slate-600 print:border-black">
-                        <div class="py-1.5 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">4</div>
+                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">4</div>
                         <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_4" class="cell-input text-amber-300 print:text-black font-black text-[1.3rem] w-full text-center sync-item print:text-sm"></div>
                     </div>
                     <div class="col-span-2 flex flex-col p-0 border-r border-slate-600 print:border-black">
-                        <div class="py-1.5 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">5</div>
+                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">5</div>
                         <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_5" class="cell-input text-amber-300 print:text-black font-black text-[1.3rem] w-full text-center sync-item print:text-sm"></div>
                     </div>
                     <div class="col-span-2 flex flex-col p-0 border-r border-slate-600 print:border-black">
-                        <div class="py-1.5 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">6</div>
+                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">6</div>
                         <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_6" class="cell-input text-amber-300 print:text-black font-black text-[1.3rem] w-full text-center sync-item print:text-sm"></div>
                     </div>
                     <div class="col-span-2 grid-header flex items-center justify-center bg-blue-900/30 text-blue-200 border-r border-slate-600 print:bg-transparent print:text-black print:border-black font-bold">공업용수 (m³)</div>
@@ -161,49 +174,49 @@
                 </div>
             </div>
 
-            <div class="flex flex-col mt-2 print:min-h-0 print:mt-1">
+            <div class="flex flex-col mt-1 print:min-h-0">
                 <div class="section-title"><span class="w-1 h-5 bg-emerald-500 mr-2 rounded-full print:bg-black"></span>각 조별 인수인계사항</div>
                 <div class="grid-table flex-1 grid grid-cols-3 print:border-black">
                     <div class="grid-cell print:border-black flex flex-col border-r border-slate-600 print:border-r">
                         <div class="grid-header text-purple-300 print:text-black tracking-widest bg-purple-900/10 print:bg-transparent print:border-black font-bold text-sm">00:00 ~ 08:00 (야간)</div>
-                        <textarea id="val_shift_1" class="cell-input left-align flex-1 sync-item min-h-[234px] print:min-h-[156px]" placeholder="특이사항 기록..."></textarea>
+                        <textarea id="val_shift_1" class="cell-input left-align flex-1 sync-item min-h-[380px] print:min-h-[300px]" placeholder="특이사항 기록..."></textarea>
                     </div>
                     <div class="grid-cell print:border-black flex flex-col border-r border-slate-600 print:border-r">
                         <div class="grid-header text-blue-300 print:text-black tracking-widest bg-blue-900/10 print:bg-transparent print:border-black font-bold text-sm">08:00 ~ 16:00 (주간)</div>
-                        <textarea id="val_shift_2" class="cell-input left-align flex-1 sync-item min-h-[234px] print:min-h-[156px]" placeholder="특이사항 기록..."></textarea>
+                        <textarea id="val_shift_2" class="cell-input left-align flex-1 sync-item min-h-[380px] print:min-h-[300px]" placeholder="특이사항 기록..."></textarea>
                     </div>
                     <div class="grid-cell print:border-black flex flex-col">
                         <div class="grid-header text-emerald-300 print:text-black tracking-widest bg-emerald-900/10 print:bg-transparent print:border-black font-bold text-sm">16:00 ~ 24:00 (초야)</div>
-                        <textarea id="val_shift_3" class="cell-input left-align flex-1 sync-item min-h-[234px] print:min-h-[156px]" placeholder="특이사항 기록..."></textarea>
+                        <textarea id="val_shift_3" class="cell-input left-align flex-1 sync-item min-h-[380px] print:min-h-[300px]" placeholder="특이사항 기록..."></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="flex justify-end mt-1 relative z-10">
-                <div class="flex items-center gap-4 bg-orange-950/20 border border-orange-500/40 px-5 py-2 rounded-xl shadow-lg print:border-black print:bg-transparent print:shadow-none print:py-1 print:px-3 print:gap-2">
+                <div class="flex items-center gap-4 bg-orange-950/20 border border-orange-500/40 px-5 py-1 rounded-xl shadow-lg print:border-black print:bg-transparent print:shadow-none print:py-0.5 print:px-3">
                     <span class="text-orange-400 print:text-black font-black text-lg tracking-tight print:text-sm">용역(선일) 투입인원:</span>
                     <div class="flex items-baseline gap-2">
-                        <input type="text" id="val_total_labor" class="w-16 bg-transparent border-b-2 border-orange-500/50 print:border-black text-orange-300 print:text-black font-black text-3xl print:text-xl text-center outline-none sync-item hover:border-orange-400 focus:border-orange-400 transition-colors">
+                        <input type="text" id="val_total_labor" class="w-16 bg-transparent border-b-2 border-orange-500/50 print:border-black text-orange-300 print:text-black font-black text-3xl print:text-xl text-center outline-none sync-item">
                         <span class="text-slate-400 print:text-black font-bold text-lg print:text-sm">명</span>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col mt-2 print:mt-1">
+            <div class="flex flex-col mt-0.5">
                 <div class="section-title"><span class="w-1 h-5 bg-cyan-500 mr-2 rounded-full print:bg-black"></span>00시 기준 탱크 압력 및 재고, 가동 현황</div>
-                <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-3 print:p-1.5 flex flex-wrap gap-x-6 gap-y-3 items-center justify-between shadow-inner print:border-black print:bg-transparent print:shadow-none print:gap-x-3 print:gap-y-1">
-                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-1 bg-slate-800 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-slate-300 print:text-black print:text-xs">공업압력:</span><input type="text" id="val_press_ind" class="w-14 bg-transparent text-white print:text-black font-black text-xl text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-sm"></div>
-                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-1 bg-slate-800 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-slate-300 print:text-black print:text-xs">식음압력:</span><input type="text" id="val_press_bev" class="w-14 bg-transparent text-white print:text-black font-black text-xl text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-sm"></div>
+                <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 print:p-1 flex flex-wrap gap-x-6 gap-y-1.5 items-center justify-between shadow-inner print:border-black print:bg-transparent print:shadow-none print:gap-x-3 print:gap-y-0.5">
+                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-0.5 bg-slate-800 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-slate-300 print:text-black print:text-xs">공업압력:</span><input type="text" id="val_press_ind" class="w-14 bg-transparent text-white print:text-black font-black text-xl text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-sm"></div>
+                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-0.5 bg-slate-800 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-slate-300 print:text-black print:text-xs">식음압력:</span><input type="text" id="val_press_bev" class="w-14 bg-transparent text-white print:text-black font-black text-xl text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-sm"></div>
                     <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#1:</span><input type="text" id="val_t1" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
                     <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#2:</span><input type="text" id="val_t2" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
                     <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#3:</span><input type="text" id="val_t3" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
                     <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#4:</span><input type="text" id="val_t4" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
                     <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#5:</span><input type="text" id="val_t5" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
-                    <div class="flex items-center gap-3 border border-rose-500/50 rounded px-3 py-1 bg-rose-900/20 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-rose-300 print:text-black print:text-xs">액화 가동:</span><input type="text" id="val_eq_run" class="w-8 bg-transparent text-rose-400 print:text-black font-black text-2xl text-center outline-none sync-item border-b border-rose-500/50 print:border-black print:text-sm"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">대</span></div>
+                    <div class="flex items-center gap-3 border border-rose-500/50 rounded px-3 py-0.5 bg-rose-900/20 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-rose-300 print:text-black print:text-xs">액화 가동:</span><input type="text" id="val_eq_run" class="w-8 bg-transparent text-rose-400 print:text-black font-black text-2xl text-center outline-none sync-item border-b border-rose-500/50 print:border-black print:text-sm"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">대</span></div>
                 </div>
             </div>
 
-            <div class="flex flex-col mt-2 mb-2 print:mt-1 print:mb-0 print:min-h-0">
+            <div class="flex flex-col mt-0.5 mb-1 print:min-h-0">
                 <div class="section-title text-rose-400"><i class="fas fa-exclamation-triangle mr-2 text-rose-500 print:text-black"></i>수리요청 사항 기록 (생산 및 정비 세부 기록)</div>
                 <div class="grid-table flex-1 flex flex-col border-rose-900/50 print:border-black">
                     <div class="grid-row grid grid-cols-[13%_63%_12%_12%] bg-rose-950/40 print:bg-transparent font-bold">
@@ -213,28 +226,34 @@
                         <div class="grid-header text-rose-300 print:text-black font-black print:border-black print:text-xs print:py-0.5">조치</div>
                     </div>
                     <div class="grid-row grid grid-cols-[13%_63%_12%_12%] flex-1 border-b border-rose-900/30 print:border-black">
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req1_time" class="cell-input sync-item print:text-xs" placeholder="예: 16일 02:00"></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><textarea id="val_req1_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none pt-2 print:text-xs print:pt-1" placeholder="고장 증상 및 요청사항"></textarea></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req1_auth" class="cell-input sync-item print:text-xs"></div>
-                        <div class="grid-cell print:border-black"><input type="text" id="val_req1_status" class="cell-input sync-item print:text-xs"></div>
+                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req1_time" class="cell-input sync-item py-0.5 print:text-xs" placeholder=".../..."></div>
+                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><textarea id="val_req1_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none py-0.5 print:text-xs" placeholder="고장 증상 및 요청사항"></textarea></div>
+                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req1_auth" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell print:border-black"><input type="text" id="val_req1_status" class="cell-input sync-item py-0.5 print:text-xs"></div>
                     </div>
                     <div class="grid-row grid grid-cols-[13%_63%_12%_12%] flex-1 border-b border-rose-900/30 print:border-black">
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req2_time" class="cell-input sync-item print:text-xs"></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><textarea id="val_req2_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none pt-2 print:text-xs print:pt-1"></textarea></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req2_auth" class="cell-input sync-item print:text-xs"></div>
-                        <div class="grid-cell print:border-black"><input type="text" id="val_req2_status" class="cell-input sync-item print:text-xs"></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req2_time" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><textarea id="val_req2_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none py-0.5 print:text-xs"></textarea></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req2_auth" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell"><input type="text" id="val_req2_status" class="cell-input sync-item py-0.5 print:text-xs"></div>
                     </div>
                     <div class="grid-row grid grid-cols-[13%_63%_12%_12%] flex-1 border-b border-rose-900/30 print:border-black">
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req3_time" class="cell-input sync-item print:text-xs"></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><textarea id="val_req3_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none pt-2 print:text-xs print:pt-1"></textarea></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req3_auth" class="cell-input sync-item print:text-xs"></div>
-                        <div class="grid-cell print:border-black"><input type="text" id="val_req3_status" class="cell-input sync-item print:text-xs"></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req3_time" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><textarea id="val_req3_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none py-0.5 print:text-xs"></textarea></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req3_auth" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell"><input type="text" id="val_req3_status" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                    </div>
+                    <div class="grid-row grid grid-cols-[13%_63%_12%_12%] flex-1 border-b border-rose-900/30 print:border-black">
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req4_time" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><textarea id="val_req4_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none py-0.5 print:text-xs"></textarea></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req4_auth" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell"><input type="text" id="val_req4_status" class="cell-input sync-item py-0.5 print:text-xs"></div>
                     </div>
                     <div class="grid-row grid grid-cols-[13%_63%_12%_12%] flex-1">
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req4_time" class="cell-input sync-item print:text-xs"></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><textarea id="val_req4_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none pt-2 print:text-xs print:pt-1"></textarea></div>
-                        <div class="grid-cell print:border-black border-r border-rose-900/30 print:border-r"><input type="text" id="val_req4_auth" class="cell-input sync-item print:text-xs"></div>
-                        <div class="grid-cell print:border-black"><input type="text" id="val_req4_status" class="cell-input sync-item print:text-xs"></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req5_time" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><textarea id="val_req5_desc" class="cell-input left-align text-rose-200 print:text-black sync-item resize-none py-0.5 print:text-xs"></textarea></div>
+                        <div class="grid-cell border-r border-rose-900/30 print:border-r"><input type="text" id="val_req5_auth" class="cell-input sync-item py-0.5 print:text-xs"></div>
+                        <div class="grid-cell"><input type="text" id="val_req5_status" class="cell-input sync-item py-0.5 print:text-xs"></div>
                     </div>
                 </div>
             </div>
