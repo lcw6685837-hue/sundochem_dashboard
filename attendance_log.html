@@ -46,7 +46,7 @@
         .col-header { font-weight: 900; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid #475569; border-bottom: 1px solid #475569; padding: 0.75rem; letter-spacing: 0.1em; }
         .input-wrapper { border-right: 1px solid #334155; border-bottom: 1px solid #334155; }
         
-        /* 🍒 인쇄 엔진 (초극세선 및 레이아웃 유지) */
+        /* 🍒 인쇄 엔진 8.5: 이중 테두리 완전히 박멸된 최고 명암비 레이아웃 */
         @media print {
             @page { size: A4 portrait; margin: 10mm; }
             body { background-color: #ffffff !important; color: #000000 !important; }
@@ -62,27 +62,27 @@
             
             .no-print { display: none !important; }
             
+            /* 모든 선 두께 0.25px 균일화 */
+            .border, .border-r, .border-b, .border-\[3px\], .border-b-\[2px\], .border-y, 
+            .row-header, .col-header, .input-wrapper, .sign-box, .sign-title-box { 
+                border-color: #000000 !important; 
+                border-width: 0.25px !important; 
+                border-style: solid !important;
+            }
+
+            /* 외곽 테두리와 맞닿는 경계면 중복선 차단 가드 */
+            .input-wrapper.\!border-r-0, .col-header.\!border-r-transparent { border-right: none !important; }
+            .input-wrapper.\!border-b-0 { border-bottom: none !important; }
+            
+            /* 비고란 상/하단 불필요 테두리 강제 무력화 */
+            .remark-row { border-top: none !important; border-bottom: none !important; }
+            .remark-row .row-header, .remark-row .input-wrapper { border-bottom: none !important; }
+
             .main-table-wrapper { 
                 border: 0.25px solid #000000 !important; 
                 height: auto !important; 
                 page-break-inside: avoid;
             }
-            
-            .row-header, .col-header, .input-wrapper, .sign-label { 
-                border: none !important; 
-                border-right: 0.25px solid #000000 !important; 
-                border-bottom: 0.25px solid #000000 !important; 
-            }
-            
-            .input-wrapper.\!border-r-0, .col-header.\!border-r-transparent { border-right: none !important; }
-            .input-wrapper.\!border-b-0, .row-header.\!border-b-0 { border-bottom: none !important; }
-            .remark-row { border-top: 0.25px solid #000000 !important; }
-
-            .sign-box { border: 0.25px solid #000000 !important; height: 60px !important; width: 330px !important; }
-            .sign-title-box { border: none !important; border-right: 0.25px solid #000000 !important; width: 25px !important; font-size: 0.8rem !important; }
-            .sign-input-wrapper { border: none !important; border-right: 0.25px solid #000000 !important; }
-            .sign-input-wrapper:last-child { border-right: none !important; }
-            .sign-label { font-size: 0.75rem !important; padding: 2px !important; height: 18px !important; }
             
             ::placeholder { color: transparent !important; }
             
@@ -98,11 +98,19 @@
             .pt-4 { padding-top: 5px !important; }
             .px-6, .py-3, .p-2.5 { padding: 4px 6px !important; border: none !important;}
             .text-\[3rem\] { font-size: 1.5rem !important; margin: 0 !important; line-height: 1;}
-            .fas.fa-id-badge { display: none !important; }
+            
+            .sign-box { border: 0.25px solid #000000 !important; height: 60px !important; width: 330px !important; }
+            .sign-title-box { border: none !important; border-right: 0.25px solid #000000 !important; width: 25px !important; font-size: 0.8rem !important; }
+            .sign-input-wrapper { border: none !important; border-right: 0.25px solid #000000 !important; }
+            .sign-input-wrapper:last-child { border-right: none !important; }
+            .sign-label { font-size: 0.75rem !important; padding: 2px !important; height: 18px !important; }
             
             .row-90 { min-height: 120px !important; } 
             .row-50 { min-height: 45px !important; }
-            .contract-row { min-height: 45px !important; height: 45px !important; flex: none !important; } 
+            
+            .contract-row { min-height: 48px !important; height: 48px !important; flex: none !important; } 
+            .contract-row .row-header { padding: 2px !important; line-height: 1.1 !important; justify-content: center !important; align-items: center !important; }
+            
             .remark-row { min-height: 80px !important; } 
         }
     </style>
@@ -221,13 +229,13 @@
             </div>
 
             <div class="grid grid-cols-[100px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] min-h-[50px] contract-row">
-                <div class="row-header !border-b-0 flex-col gap-0.5"><span class="tracking-widest text-sm whitespace-nowrap">용역근로</span><span class="text-[10px] text-slate-400 font-normal whitespace-nowrap">(선일기업)</span></div>
-                <div class="input-wrapper !border-b-0"><textarea id="att_contract_1" class="att-cell sync-item" placeholder="작성..."></textarea></div>
-                <div class="input-wrapper !border-b-0"><textarea id="att_contract_2" class="att-cell sync-item" placeholder="작성..."></textarea></div>
-                <div class="input-wrapper !border-r-0 !border-b-0"><textarea id="att_contract_3" class="att-cell sync-item" placeholder="작성..."></textarea></div>
+                <div class="row-header flex-col gap-0.5"><span class="tracking-widest text-sm whitespace-nowrap">용역근로</span><span class="text-[10px] text-slate-400 font-normal whitespace-nowrap">(선일기업)</span></div>
+                <div class="input-wrapper"><textarea id="att_contract_1" class="att-cell sync-item" placeholder="작성..."></textarea></div>
+                <div class="input-wrapper"><textarea id="att_contract_2" class="att-cell sync-item" placeholder="작성..."></textarea></div>
+                <div class="input-wrapper !border-r-0"><textarea id="att_contract_3" class="att-cell sync-item" placeholder="작성..."></textarea></div>
             </div>
 
-            <div class="grid grid-cols-[100px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] flex-1 min-h-[120px] remark-row border-t border-slate-600">
+            <div class="grid grid-cols-[100px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] flex-1 min-h-[120px] remark-row">
                 <div class="row-header !border-b-0">
                     <span class="tracking-widest text-lg font-black whitespace-nowrap">비 고</span>
                 </div>
@@ -278,7 +286,6 @@
 
             function loadLogData(dateStr) {
                 if (currentRef) currentRef.off();
-                // 🍒 과거의 저장 경로인 'attendance_logs/' 그대로 유지 완료
                 currentRef = db.ref('attendance_logs/' + dateStr);
                 
                 currentRef.on('value', snapshot => {
