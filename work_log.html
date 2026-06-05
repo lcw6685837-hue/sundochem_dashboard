@@ -185,7 +185,29 @@
                 </div>
             </div>
 
-            <div class="flex justify-end mt-1 relative z-10">
+<div class="flex justify-end mt-1 relative z-10 gap-4">
+                
+                <div class="flex items-center gap-2 bg-orange-950/20 border border-orange-500/40 px-5 py-1 rounded-xl shadow-lg print:border-black print:bg-transparent print:shadow-none print:py-0.5 print:px-3">
+                    <span class="text-orange-400 print:text-black font-bold text-base tracking-tight print:text-xs">체감온도 기록 :</span>
+                    <div class="flex items-center text-orange-300 print:text-black font-medium text-base print:text-xs whitespace-nowrap">
+                        <span class="ml-1">야간 (</span>
+                        <input type="text" id="val_temp_night" class="w-10 bg-transparent border-b border-orange-500/50 print:border-black text-orange-200 print:text-black font-bold text-center outline-none sync-item mx-1 px-1" placeholder="...">
+                        <span>℃ )</span>
+                        
+                        <span class="mx-3 text-orange-500/50 print:text-black font-light">/</span>
+                        
+                        <span>주간 (</span>
+                        <input type="text" id="val_temp_day" class="w-10 bg-transparent border-b border-orange-500/50 print:border-black text-orange-200 print:text-black font-bold text-center outline-none sync-item mx-1 px-1" placeholder="...">
+                        <span>℃ )</span>
+                        
+                        <span class="mx-3 text-orange-500/50 print:text-black font-light">/</span>
+                        
+                        <span>초야 (</span>
+                        <input type="text" id="val_temp_evening" class="w-10 bg-transparent border-b border-orange-500/50 print:border-black text-orange-200 print:text-black font-bold text-center outline-none sync-item mx-1 px-1" placeholder="...">
+                        <span>℃ )</span>
+                    </div>
+                </div>
+
                 <div class="flex items-center gap-4 bg-orange-950/20 border border-orange-500/40 px-5 py-1 rounded-xl shadow-lg print:border-black print:bg-transparent print:shadow-none print:py-0.5 print:px-3">
                     <span class="text-orange-400 print:text-black font-black text-lg tracking-tight print:text-sm">용역(선일) 투입인원:</span>
                     <div class="flex items-baseline gap-2">
@@ -193,7 +215,8 @@
                         <span class="text-slate-400 print:text-black font-bold text-lg print:text-sm">명</span>
                     </div>
                 </div>
-            </div>
+                
+            </div>            
 
             <div class="flex flex-col mt-0.5">
                 <div class="section-title"><span class="w-1 h-5 bg-cyan-500 mr-2 rounded-full print:bg-black"></span>00시 기준 탱크 압력 및 재고, 가동 현황</div>
