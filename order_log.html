@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script>
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`전체화면 에러: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUNDOCHEM 자재주문 의뢰서</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; background-color: #0b1120; color: #e2e8f0; }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        textarea { resize: none; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        /* 테이블 기본 스타일 */
+        .att-cell { padding: 0.5rem; outline: none; background: transparent; width: 100%; height: 100%; color: #e2e8f0; font-size: 1rem; line-height: 1.5; text-align: center; }
+        .att-cell:focus { background-color: rgba(236, 72, 153, 0.1); }
+        .att-cell.left-align { text-align: left; }
+        .att-cell.right-align { text-align: right; font-weight: bold; }
+        
+        .row-header { background-color: rgba(30, 41, 59, 0.6); color: #cbd5e1; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid #475569; border-bottom: 1px solid #475569; font-size: 0.95rem; }
+        .col-header { font-weight: 900; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid #475569; border-bottom: 1px solid #475569; padding: 0.5rem; letter-spacing: 0.05em; background-color: rgba(255, 255, 255, 0.05); }
+        .input-wrapper { border-right: 1px solid #334155; border-bottom: 1px solid #334155; }
+        
+        /* 🍒 인쇄 엔진 최적화: A4 세로 1장 완벽 맞춤 (13행 기준) */
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { background-color: #ffffff !important; color: #000000 !important; }
+            
+            * { 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                text-shadow: none !important; 
+                box-shadow: none !important; 
+                background-color: transparent !important; 
+                color: #000000 !important; 
+            }
+            
+            .no-print { display: none !important; }
+            
+            /* 테두리 흑백 전환 및 이중선 제거 */
+            .main-table-wrapper { border: 1.5px solid #000000 !important; page-break-inside: avoid; }
+            .col-header, .row-header, .input-wrapper, .sign-label { 
+                border: none !important; 
+                border-right: 1px solid #000000 !important; 
+                border-bottom: 1px solid #000000 !important; 
+                box-sizing: border-box !important;
+            }
+            
+            .input-wrapper.\!border-r-0, .col-header.\!border-r-0 { border-right: none !important; }
+            .input-wrapper.\!border-b-0, .row-header.\!border-b-0 { border-bottom: none !important; }
+            
+            ::placeholder { color: transparent !important; }
+            
+            .row-header, .col-header { background-color: #e2e8f0 !important; font-size: 0.8rem !important; padding: 4px !important; color: #000 !important; font-weight: bold !important; }
+            .att-cell { font-size: 0.8rem !important; padding: 4px !important; color: #000 !important; }
+            
+            /* 🍒 결재란 인쇄 시인성 극대화 */
+            .sign-box { border: 1.5px solid #000000 !important; height: 60px !important; width: 330px !important; }
+            .sign-title-box { border: none !important; border-right: 1px solid #000000 !important; width: 25px !important; font-size: 0.8rem !important; background-color: #f1f5f9 !important; }
+            .sign-input-wrapper { border: none !important; border-right: 1px solid #000000 !important; }
+            .sign-input-wrapper:last-child { border-right: none !important; }
+            .sign-label { border: none !important; border-bottom: 1px solid #000000 !important; border-right: 1px solid #000000 !important; background-color: #f1f5f9 !important; font-size: 0.75rem !important; padding: 2px !important; height: 18px !important; color: #000 !important;}
+            .sign-label:last-child { border-right: none !important; }
+            
+            /* 데이터 행 높이 강제 조절하여 A4 핏(Fit) 맞춤 */
+            .data-row { height: 35px !important; min-height: 35px !important; }
+            .remark-row { min-height: 120px !important; }
+            
+            .text-\[2\.5rem\] { font-size: 1.5rem !important; margin: 0 !important; line-height: 1;}
+            .bg-pink-950\/20 { padding: 4px 8px !important; border: none !important; }
+        }
+    </style>
+</head>
+<body class="p-4 lg:p-6 min-h-screen flex flex-col items-center">
+
+    <div class="w-full max-w-[1200px] flex-1 flex flex-col">
+        
+        <div class="flex flex-col gap-4 mb-4">
+            <div class="flex justify-between items-center w-full relative z-20">
+                <div class="flex-1"></div>
+                
+                <div class="flex items-center gap-3 bg-[#1e293b] px-6 py-2 rounded-full border border-slate-600 shadow-inner print:border-none print:bg-transparent shrink-0">
+                    <span class="text-slate-400 font-bold text-sm tracking-widest print:text-black">주문일자:</span>
+                    <input type="date" id="log-date" class="bg-transparent border-none text-xl font-black text-amber-400 outline-none cursor-pointer print:text-black text-center">
+                    <span id="log-day" class="text-xl font-black text-amber-400 ml-1 print:text-black"></span>
+                </div>
+                
+                <div class="flex-1 flex justify-end gap-2 no-print shrink-0">
+                    <button onclick="toggleFullScreen()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded border border-slate-600 font-bold transition flex items-center gap-2 text-xs shadow-md"><i class="fas fa-expand"></i> 전체화면</button>
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded border border-slate-600 font-bold transition flex items-center gap-2 text-xs shadow-md"><i class="fas fa-print"></i> 인쇄</button>
+                    <button onclick="window.close()" class="bg-rose-900 hover:bg-rose-800 text-white px-3 py-1.5 rounded border border-rose-700 font-bold transition flex items-center gap-2 text-xs shadow-md"><i class="fas fa-times"></i> 닫기</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-end">
+                <div class="flex items-center gap-4 bg-pink-950/20 px-6 py-3 rounded-2xl border border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.15)] print:p-0 print:shadow-none print:bg-transparent print:border-none">
+                    <div class="bg-pink-500/20 p-2 rounded-xl border border-pink-500/50 print:border-none print:bg-transparent print:p-0">
+                        <i class="fas fa-file-invoice-dollar text-[2rem] text-pink-400 no-print"></i>
+                        <i class="fas fa-file-invoice-dollar text-[1.8rem] text-black hidden print:block"></i>
+                    </div>
+                    <h1 class="text-[2.5rem] font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-400 tracking-widest drop-shadow-md print:text-[2rem] print:text-black">자재주문 의뢰서</h1>
+                </div>
+
+                <div class="w-[450px] flex h-[100px] sign-box border border-slate-600 rounded-lg overflow-hidden shadow-inner print:shadow-none">
+                    <div class="w-10 bg-slate-800 flex flex-col items-center justify-center text-slate-300 font-black text-sm tracking-widest sign-title-box leading-tight border-r border-slate-600 print:bg-[#f1f5f9] print:text-black">
+                        <span>결</span><span>재</span>
+                    </div>
+                    <div class="grid grid-cols-4 bg-[#0f172a] print:bg-transparent flex-1">
+                        <div class="bg-slate-700/60 print:bg-[#f1f5f9] border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label">담 당</div>
+                        <div class="bg-slate-700/60 print:bg-[#f1f5f9] border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label">검 토 1</div>
+                        <div class="bg-slate-700/60 print:bg-[#f1f5f9] border-r border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label">검 토 2</div>
+                        <div class="bg-slate-700/60 print:bg-[#f1f5f9] border-b border-slate-600 print:border-black flex items-center justify-center py-1 text-slate-300 print:text-black font-bold text-sm sign-label !border-r-0">승 인</div>
+                        
+                        <div class="border-r border-slate-600 print:border-black sign-input-wrapper"><textarea id="order_sign_draft" class="att-cell text-center text-slate-200 print:text-black font-bold sync-item pt-4" placeholder="(서명)"></textarea></div>
+                        <div class="border-r border-slate-600 print:border-black sign-input-wrapper"><textarea id="order_sign_rev1" class="att-cell text-center text-slate-200 print:text-black font-bold sync-item pt-4" placeholder="(서명)"></textarea></div>
+                        <div class="border-r border-slate-600 print:border-black sign-input-wrapper"><textarea id="order_sign_rev2" class="att-cell text-center text-slate-200 print:text-black font-bold sync-item pt-4" placeholder="(서명)"></textarea></div>
+                        <div class="sign-input-wrapper"><textarea id="order_sign_appr" class="att-cell text-center text-slate-200 print:text-black font-bold sync-item pt-4" placeholder="(서명)"></textarea></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-table-wrapper border-[3px] border-pink-500 rounded-xl overflow-hidden flex-1 flex flex-col shadow-[0_0_20px_rgba(236,72,153,0.2)] bg-[#0f172a]">
+            
+            <div class="grid grid-cols-[50px_minmax(0,1.2fr)_minmax(0,3fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)] bg-[#1e293b] print:bg-[#e2e8f0] border-b-[2px] border-pink-500 print:border-black text-slate-300 print:text-black">
+                <div class="col-header">순번</div>
+                <div class="col-header">의뢰인</div>
+                <div class="col-header">품명</div>
+                <div class="col-header">수량</div>
+                <div class="col-header text-amber-300 print:text-black">금 액</div>
+                <div class="col-header">주문자</div>
+                <div class="col-header">주문일자</div>
+                <div class="col-header !border-r-0">검수확인</div>
+            </div>
+
+            <div id="order-grid-body" class="flex flex-col flex-1"></div>
+
+            <div class="grid grid-cols-[50px_minmax(0,1.2fr)_minmax(0,3fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)] min-h-[45px] bg-[#1e293b] print:bg-transparent border-y-[2px] border-pink-500 print:border-y-black">
+                <div class="col-span-4 row-header text-lg tracking-widest text-white print:text-black !border-b-0 print:bg-[#e2e8f0]">합 계 금 액</div>
+                
+                <div class="col-span-3 input-wrapper bg-[#0f172a] print:bg-transparent !border-b-0 flex items-center justify-center">
+                    <input type="text" id="order_total_amount" class="att-cell text-center font-black text-amber-400 print:text-black text-2xl w-full tracking-wider" readonly value="0">
+                </div>
+                
+                <div class="input-wrapper flex items-center justify-center text-white print:text-black font-bold bg-[#0f172a] print:bg-transparent !border-b-0 !border-r-0 text-lg print:text-[1rem]">
+                    (원)
+                </div>
+            </div>
+
+            <div class="flex flex-col flex-1 min-h-[120px] remark-row">
+                <div class="row-header !border-b-0 justify-start px-4 py-2 bg-slate-800/80 print:bg-[#e2e8f0]">
+                    <span class="tracking-widest text-md font-black print:text-black">특 기 사 항</span>
+                </div>
+                <div class="input-wrapper !border-r-0 !border-b-0 flex-1 p-2">
+                    <textarea id="order_remark" class="att-cell sync-item left-align w-full h-full text-slate-200 print:text-black" placeholder="주문 요구사항, 사양, 납기일 등 세부사항을 자유롭게 기재하세요..."></textarea>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // 🛡️ 1. Firebase 설정 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
+            authDomain: "sundochem-dashboard.firebaseapp.com",
+            databaseURL: "https://sundochem-dashboard-default-rtdb.firebaseio.com",
+            projectId: "sundochem-dashboard",
+            storageBucket: "sundochem-dashboard.firebasestorage.app",
+            messagingSenderId: "360796635566",
+            appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('log-date');
+            const dayDisplay = document.getElementById('log-day'); 
+            const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+
+            function updateDayDisplay(dateStr) {
+                const dateObj = new Date(dateStr);
+                if (!isNaN(dateObj)) {
+                    dayDisplay.textContent = daysOfWeek[dateObj.getDay()] + '요일';
+                }
+            }
+
+            // 초기 기본 날짜 설정
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+            updateDayDisplay(dateInput.value);
+
+            // 13행 데이터 그리드 동적 생성
+            const gridBody = document.getElementById('order-grid-body');
+            const rowCount = 13;
+
+            for (let i = 1; i <= rowCount; i++) {
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-[50px_minmax(0,1.2fr)_minmax(0,3fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)] data-row min-h-[40px] flex-1";
+                
+                row.innerHTML = `
+                    <div class="row-header">${i}</div>
+                    <div class="input-wrapper"><input type="text" id="order_client_${i}" class="att-cell sync-item"></div>
+                    <div class="input-wrapper"><input type="text" id="order_item_${i}" class="att-cell left-align sync-item"></div>
+                    <div class="input-wrapper"><input type="text" id="order_qty_${i}" class="att-cell sync-item"></div>
+                    <div class="input-wrapper flex"><input type="text" id="order_amt_${i}" class="att-cell right-align sync-item amt-input text-amber-300 print:text-black w-full pr-4 print:pr-2" placeholder="0"></div>
+                    <div class="input-wrapper"><input type="text" id="order_orderer_${i}" class="att-cell sync-item"></div>
+                    <div class="input-wrapper"><input type="text" id="order_date_${i}" class="att-cell sync-item"></div>
+                    <div class="input-wrapper !border-r-0"><input type="text" id="order_check_${i}" class="att-cell sync-item"></div>
+                `;
+                gridBody.appendChild(row);
+            }
+
+            // 자동 합산 및 금액 포맷 엔진
+            const amtInputs = document.querySelectorAll('.amt-input');
+            const totalDisplay = document.getElementById('order_total_amount');
+
+            function parseCommaNum(str) { 
+                return isNaN(parseInt(String(str).replace(/,/g, ""))) ? 0 : parseInt(String(str).replace(/,/g, "")); 
+            }
+            
+            function formatCommaNum(num) { 
+                if (num === 0) return ""; 
+                return num.toLocaleString("ko-KR"); 
+            }
+
+            function calculateTotal() {
+                let sum = 0;
+                amtInputs.forEach(input => {
+                    sum += parseCommaNum(input.value);
+                });
+                totalDisplay.value = sum === 0 ? "0" : sum.toLocaleString("ko-KR");
+            }
+
+            // 금액 입력 제어 필터링
+            amtInputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    let val = e.target.value.replace(/[^0-9]/g, ''); 
+                    if (val !== "") {
+                        e.target.value = formatCommaNum(parseInt(val));
+                    }
+                    calculateTotal();
+                });
+                input.addEventListener('blur', calculateTotal);
+            });
+
+            // 🛡️ 2. Firebase 실시간 동기화 커넥션 코어
+            const syncItems = document.querySelectorAll('.sync-item');
+            let currentRef = null;
+
+            // 특정 날짜의 데이터를 Firebase로부터 스트리밍 로드
+            function loadLogData(dateStr) {
+                if (currentRef) currentRef.off(); 
+                currentRef = db.ref('order_logs/' + dateStr);
+                
+                currentRef.on('value', snapshot => {
+                    const data = snapshot.val() || {};
+                    syncItems.forEach(item => {
+                        if (document.activeElement !== item) {
+                            item.value = data[item.id] || '';
+                        }
+                    });
+                    calculateTotal();
+                });
+            }
+
+            // 보안 인증 유지 상태 감시 및 바인딩
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    syncItems.forEach(item => {
+                        item.addEventListener('input', e => {
+                            if (currentRef) {
+                                currentRef.child(e.target.id).set(e.target.value);
+                            }
+                        });
+                    });
+
+                    dateInput.addEventListener('change', e => {
+                        loadLogData(e.target.value);
+                        updateDayDisplay(e.target.value);
+                    });
+
+                    loadLogData(dateInput.value);
+                    updateDayDisplay(dateInput.value);
+                } else {
+                    window.location.replace("index.html");
+                }
+            });
+        });
+
+        // 자정 경과 시 자동 세션 새로고침 안전장치
+        function scheduleMidnightRefresh() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+            const msUntilMidnight = tomorrow.getTime() - now.getTime();
+            setTimeout(() => { window.location.reload(true); }, msUntilMidnight);
+        }
+        scheduleMidnightRefresh();
+    </script>
+</body>
+</html>
