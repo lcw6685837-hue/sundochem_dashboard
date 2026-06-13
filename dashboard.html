@@ -83,19 +83,14 @@
             </h2>
         </div>
 
-        <div class="flex items-center shrink-0 gap-4 relative z-20">
+<div class="flex items-center shrink-0 gap-4 relative z-20">
             <div class="flex gap-2 bg-[#0f172a]/90 backdrop-blur-md border border-slate-600 p-1.5 rounded-xl shadow-inner items-stretch">
                 
-                <!-- 자재 주문 의뢰서 추가 공간 -->
-                <div class="flex flex-col gap-1.5">
-                    <button onclick="window.open('order_log.html', '_blank', 'width=1400,height=950,scrollbars=yes')" class="group relative flex items-center justify-center gap-1.5 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-cyan-600 hover:to-cyan-700 text-slate-200 hover:text-white border border-slate-500 hover:border-cyan-400 px-3 py-1 rounded-lg text-[10px] font-bold shadow-md transition-all duration-300 h-full">
-                        <i class="fas fa-clipboard-check text-cyan-400 group-hover:text-white transition-colors"></i> <span>자재</span>
-                    </button>
-                    <!-- 하단 예비용 빈칸 (점선 테두리로 예비 공간임을 표현) -->
-                    <div class="flex items-center justify-center bg-slate-800/30 border border-slate-600/50 border-dashed rounded-lg h-full w-full">
-                        <span class="opacity-0 text-[10px] font-bold px-3 py-1">예비</span>
-                    </div>
-                </div>
+                <!-- 🍒 [최종 수정] 역할 전달을 명확하게 고도화한 대형 '자재주문' 버튼 -->
+                <button onclick="window.open('order_log.html', '_blank', 'width=1400,height=950,scrollbars=yes')" class="group relative flex flex-col items-center justify-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-cyan-600 hover:to-cyan-700 text-slate-200 hover:text-white border border-slate-500 hover:border-cyan-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300 min-w-[75px]">
+                    <i class="fas fa-clipboard-check text-cyan-400 group-hover:text-white text-base transition-colors"></i>
+                    <span>자재주문</span>
+                </button>
 
                 <div class="flex flex-col gap-1.5">
                     <button onclick="window.open('monthly_plan.html', '_blank', 'width=1400,height=900,scrollbars=yes')" class="group relative flex items-center justify-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-blue-600 hover:to-blue-700 text-slate-200 hover:text-white border border-slate-500 hover:border-blue-400 px-3 py-1 rounded-lg text-[10px] font-bold shadow-md transition-all duration-300 h-full">
