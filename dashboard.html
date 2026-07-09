@@ -77,7 +77,7 @@
             </div>
         </div>
 
-        <div class="flex-1 flex justify-center items-center relative z-10 min-w-0">
+        <div class="flex-1 flex justify-center items-center relative z-30 min-w-0">
             <h2 class="text-5xl 2xl:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-100 to-amber-300 tracking-[0.15em] drop-shadow-[0_0_15px_rgba(253,230,138,0.5)] whitespace-nowrap pointer-events-auto">
                 생산현황판
             </h2>
@@ -87,6 +87,12 @@
             <div class="flex gap-2 bg-[#0f172a]/90 backdrop-blur-md border border-slate-600 p-1.5 rounded-xl shadow-inner items-stretch">
                 
                 <!-- 🍒 [최종 수정] 역할 전달을 명확하게 고도화한 대형 '자재주문' 버튼 -->
+                <!-- 새 아이콘: D/I 생산 (자재주문 버튼 바로 왼쪽에 배치) -->
+                <button onclick="window.open('https://lcw6685837-hue.github.io/dryice_production_log/', '_blank', 'width=1200,height=800,scrollbars=yes')" aria-label="D/I 생산" class="group relative flex flex-col items-center justify-center gap-1 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-indigo-600 hover:to-indigo-700 text-slate-200 hover:text-white border border-slate-500 hover:border-indigo-400 px-2 py-1 rounded-lg text-xs font-bold shadow-md transition-all duration-300 min-w-[64px]">
+                    <i class="fas fa-snowflake text-indigo-400 group-hover:text-white text-base transition-colors"></i>
+                    <span>D/I 생산</span>
+                </button>
+
                 <button onclick="window.open('order_log.html', '_blank', 'width=1400,height=950,scrollbars=yes')" class="group relative flex flex-col items-center justify-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-cyan-600 hover:to-cyan-700 text-slate-200 hover:text-white border border-slate-500 hover:border-cyan-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300 min-w-[75px]">
                     <i class="fas fa-clipboard-check text-cyan-400 group-hover:text-white text-base transition-colors"></i>
                     <span>자재주문</span>
