@@ -101,6 +101,16 @@
                 <span id="log-day" class="text-2xl font-black text-amber-300 ml-1 print:text-black"></span>
             </div>
             
+            <!-- [추가됨] 전일/익일 날짜 이동 아이콘 버튼 그룹 (인쇄 제외) -->
+            <div class="flex items-center gap-1.5 no-print bg-slate-800 px-3 py-1.5 rounded-full border border-slate-600 shadow-inner">
+                <button type="button" id="btn-prev" class="w-10 h-10 flex items-center justify-center text-orange-500 hover:text-orange-400 hover:bg-slate-700/60 rounded-lg transition cursor-pointer" title="전날 보기">
+                    <i class="fas fa-caret-left text-3xl"></i>
+                </button>
+                <button type="button" id="btn-next" class="w-10 h-10 flex items-center justify-center text-orange-500 hover:text-orange-400 hover:bg-slate-700/60 rounded-lg transition cursor-pointer" title="다음날 보기">
+                    <i class="fas fa-caret-right text-3xl"></i>
+                </button>
+            </div>
+            
             <div class="flex gap-2 no-print">
                 <button onclick="toggleFullScreen()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition flex items-center gap-2"><i class="fas fa-expand"></i> 전체화면</button>
                 <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded border border-slate-500 font-bold transition"><i class="fas fa-print mr-2"></i>인쇄</button>
@@ -185,23 +195,18 @@
                 </div>
             </div>
 
-<div class="flex justify-end mt-1 relative z-10 gap-4">
-                
+            <div class="flex justify-end mt-1 relative z-10 gap-4">
                 <div class="flex items-center gap-2 bg-orange-950/20 border border-orange-500/40 px-5 py-1 rounded-xl shadow-lg print:border-black print:bg-transparent print:shadow-none print:py-0.5 print:px-3">
                     <span class="text-orange-400 print:text-black font-bold text-base tracking-tight print:text-xs">체감온도 기록 :</span>
                     <div class="flex items-center text-orange-300 print:text-black font-medium text-base print:text-xs whitespace-nowrap">
                         <span class="ml-1">야간 (</span>
                         <input type="text" id="val_temp_night" class="w-10 bg-transparent border-b border-orange-500/50 print:border-black text-orange-200 print:text-black font-bold text-center outline-none sync-item mx-1 px-1" placeholder="...">
                         <span>℃ )</span>
-                        
                         <span class="mx-3 text-orange-500/50 print:text-black font-light">/</span>
-                        
                         <span>주간 (</span>
                         <input type="text" id="val_temp_day" class="w-10 bg-transparent border-b border-orange-500/50 print:border-black text-orange-200 print:text-black font-bold text-center outline-none sync-item mx-1 px-1" placeholder="...">
                         <span>℃ )</span>
-                        
                         <span class="mx-3 text-orange-500/50 print:text-black font-light">/</span>
-                        
                         <span>초야 (</span>
                         <input type="text" id="val_temp_evening" class="w-10 bg-transparent border-b border-orange-500/50 print:border-black text-orange-200 print:text-black font-bold text-center outline-none sync-item mx-1 px-1" placeholder="...">
                         <span>℃ )</span>
@@ -215,7 +220,6 @@
                         <span class="text-slate-400 print:text-black font-bold text-lg print:text-sm">명</span>
                     </div>
                 </div>
-                
             </div>            
 
             <div class="flex flex-col mt-0.5">
@@ -294,6 +298,8 @@
             const dateInput = document.getElementById('log-date');
             const dayDisplay = document.getElementById('log-day'); 
             const syncItems = document.querySelectorAll('.sync-item');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
             let currentRef = null;
 
             const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
@@ -339,6 +345,23 @@
                     });
                 });
             }
+
+            // [추가됨] 날짜 증감 함수 (전날/다음날 이동)
+            function shiftDate(days) {
+                const currentVal = dateInput.value;
+                const d = currentVal ? new Date(currentVal) : new Date();
+                if (isNaN(d)) return;
+                d.setDate(d.getDate() + days);
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
+                loadLogData(dateInput.value);
+                updateDayDisplay(dateInput.value);
+            }
+
+            btnPrev.addEventListener('click', () => shiftDate(-1));
+            btnNext.addEventListener('click', () => shiftDate(1));
 
             firebase.auth().onAuthStateChanged((user) => {
                 if (user) {
