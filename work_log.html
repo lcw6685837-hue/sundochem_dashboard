@@ -151,11 +151,11 @@
                 min-height: 60px !important;
             }
 
-            /* [인쇄 버그 해결] 인수인계 사항 세 칸의 완벽한 수직 정렬을 보장 */
+            /* 인수인계 사항 세 칸의 완벽한 수직 정렬을 보장[cite: 1] */
             .grid-table.grid-cols-3 { 
                 display: grid !important;
                 grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-                align-items: stretch !important; /* 개별 가로선 붕 뜸 방지: 세 칸 높이를 동일하게 강제 연장 */[cite: 1]
+                align-items: stretch !important; /* 세 칸 높이를 동일하게 강제 연장하여 가로선 붕 뜸 방지[cite: 1] */
                 flex: none !important; 
                 height: auto !important; 
             }
@@ -163,20 +163,27 @@
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: flex-start !important;
-                align-self: stretch !important; /* 세로 경계선이 바닥까지 꽉 차도록 확장 */[cite: 1]
+                align-self: stretch !important; /* 세로 경계선이 바닥까지 꽉 차도록 확장[cite: 1] */
                 height: auto !important; 
                 flex: 1 1 auto !important; 
             }
 
-            /* [수정] 인쇄본 30% 높이 확장 및 유연한 팽창 보장 */
+            /* 조별 인수인계 헤더 크기를 인쇄 시 축소 */
+            .grid-table.grid-cols-3 .grid-header {
+                font-size: 0.85rem !important; /* 기존 1.225rem에서 인쇄 시 적절한 크기로 축소 */
+                padding: 4px !important;
+            }
+
+            /* 손글씨 대용 인쇄본 글자 크기 확대 및 30% 높이 확장 */
             .shift-print-div {
-                font-size: 0.85rem !important;
-                line-height: 1.35 !important;
+                font-size: 1.05rem !important; /* 기존 0.85rem에서 1.05rem으로 대폭 확대하여 모니터와 통일[cite: 1] */
+                font-weight: 600 !important; /* 인쇄본 시인성을 위해 약간 더 굵게 지정[cite: 1] */
+                line-height: 1.4 !important;
                 padding: 8px 12px !important;
-                min-height: 210px !important; /* 기존 160px에서 30% 확장하여 빈 공간을 가득 메움 */[cite: 1]
-                max-height: 365px !important; /* 내용이 너무 길어질 때 2장으로 밀리지 않도록 방어하는 마지노선 */[cite: 1]
+                min-height: 210px !important; /* 빈 공간을 채우기 위한 30% 높이 확보[cite: 1] */
+                max-height: 365px !important; /* 다중 페이지 방지를 위한 마지노선[cite: 1] */
                 height: auto !important;
-                flex-grow: 1 !important; /* 늘어난 그리드 높이 전체에 배경 테두리가 적용되도록 유도 */[cite: 1]
+                flex-grow: 1 !important; /* 늘어난 그리드 높이 전체에 배경 테두리가 적용되도록 유도[cite: 1] */
             }
 
             /* 수리요청사항 최적화 */
@@ -269,26 +276,44 @@
                 </div>
             </div>
 
+            <!-- [수정됨] 전력 및 공업용수 검침 폰트 사양 2배 스케일 업 -->
             <div class="flex flex-col mt-1">
                 <div class="section-title"><span class="w-1 h-5 bg-amber-500 mr-2 rounded-full print:bg-black"></span>전력 및 공업용수 검침</div>
                 <div class="grid-table grid grid-cols-12 bg-slate-800 print:bg-transparent print:border-black">
-                    <div class="col-span-1 grid-header flex items-center justify-center bg-amber-900/30 text-amber-200 print:bg-transparent print:text-black print:border-black font-bold">전력</div>
+                    <!-- 헤더: 전력 -->
+                    <div class="col-span-1 grid-header flex items-center justify-center bg-amber-900/30 text-amber-200 print:bg-transparent print:text-black print:border-black font-bold text-2xl print:text-lg">전력</div>
+                    
+                    <!-- 전력 4호기 -->
                     <div class="col-span-2 flex flex-col p-0 border-r border-slate-600 print:border-black">
-                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">4</div>
-                        <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_4" class="cell-input text-amber-300 print:text-black font-black text-[1.3rem] w-full text-center sync-item print:text-sm"></div>
+                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-2xl bg-slate-700/50 print:bg-transparent print:text-base print:py-0.5">4</div>
+                        <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_4" class="cell-input text-amber-300 print:text-black font-black text-[2.2rem] w-full text-center sync-item print:text-lg"></div>
                     </div>
+                    
+                    <!-- 전력 5호기 -->
                     <div class="col-span-2 flex flex-col p-0 border-r border-slate-600 print:border-black">
-                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">5</div>
-                        <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_5" class="cell-input text-amber-300 print:text-black font-black text-[1.3rem] w-full text-center sync-item print:text-sm"></div>
+                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-2xl bg-slate-700/50 print:bg-transparent print:text-base print:py-0.5">5</div>
+                        <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_5" class="cell-input text-amber-300 print:text-black font-black text-[2.2rem] w-full text-center sync-item print:text-lg"></div>
                     </div>
+                    
+                    <!-- 전력 6호기 -->
                     <div class="col-span-2 flex flex-col p-0 border-r border-slate-600 print:border-black">
-                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-lg bg-slate-700/50 print:bg-transparent print:text-sm print:py-0.5">6</div>
-                        <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_6" class="cell-input text-amber-300 print:text-black font-black text-[1.3rem] w-full text-center sync-item print:text-sm"></div>
+                        <div class="py-1 border-b border-blue-400/50 print:border-black w-full text-center text-slate-300 print:text-black font-bold text-2xl bg-slate-700/50 print:bg-transparent print:text-base print:py-0.5">6</div>
+                        <div class="flex-1 flex items-center justify-center bg-[#0f172a] print:bg-transparent"><input type="text" id="val_pwr_6" class="cell-input text-amber-300 print:text-black font-black text-[2.2rem] w-full text-center sync-item print:text-lg"></div>
                     </div>
-                    <div class="col-span-2 grid-header flex items-center justify-center bg-blue-900/30 text-blue-200 border-r border-slate-600 print:bg-transparent print:text-black print:border-black font-bold">공업용수 (m³)</div>
+                    
+                    <!-- 헤더: 공업용수 -->
+                    <div class="col-span-2 grid-header flex items-center justify-center bg-blue-900/30 text-blue-200 border-r border-slate-600 print:bg-transparent print:text-black print:border-black font-bold text-xl print:text-base">공업용수 (m³)</div>
+                    
+                    <!-- 공업용수 값 영역 -->
                     <div class="col-span-3 flex flex-col bg-[#0f172a] print:bg-transparent">
-                        <div class="flex border-b border-slate-600 print:border-black flex-1"><span class="w-10 flex justify-center items-center font-bold text-slate-400 print:text-black border-r border-slate-600 print:border-black text-lg print:text-sm bg-slate-800 print:bg-transparent">1:</span><input type="text" id="val_water_1" class="cell-input text-blue-300 print:text-black font-black text-[1.3rem] left-align sync-item print:text-sm"></div>
-                        <div class="flex flex-1"><span class="w-10 flex justify-center items-center font-bold text-slate-400 print:text-black border-r border-slate-600 print:border-black text-lg print:text-sm bg-slate-800 print:bg-transparent">2:</span><input type="text" id="val_water_2" class="cell-input text-blue-300 print:text-black font-black text-[1.3rem] left-align sync-item print:text-sm"></div>
+                        <div class="flex border-b border-slate-600 print:border-black flex-1">
+                            <span class="w-14 flex justify-center items-center font-bold text-slate-400 print:text-black border-r border-slate-600 print:border-black text-2xl print:text-base bg-slate-800 print:bg-transparent">1:</span>
+                            <input type="text" id="val_water_1" class="cell-input text-blue-300 print:text-black font-black text-[2.2rem] left-align sync-item print:text-lg">
+                        </div>
+                        <div class="flex flex-1">
+                            <span class="w-14 flex justify-center items-center font-bold text-slate-400 print:text-black border-r border-slate-600 print:border-black text-2xl print:text-base bg-slate-800 print:bg-transparent">2:</span>
+                            <input type="text" id="val_water_2" class="cell-input text-blue-300 print:text-black font-black text-[2.2rem] left-align sync-item print:text-lg">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -296,7 +321,7 @@
             <div class="flex flex-col mt-1 print:min-h-0">
                 <div class="section-title"><span class="w-1 h-5 bg-emerald-500 mr-2 rounded-full print:bg-black"></span>각 조별 인수인계사항</div>
                 <div class="grid-table flex-1 grid grid-cols-3 print:border-black">
-                    <!-- [수정] 모니터 환경에서도 동일하게 30% 증가된 세로폭 min-h-[215px] 적용 -->
+                    <!-- 모니터 환경 세로폭 min-h-[215px] 유지 -->
                     <div class="grid-cell print:border-black flex flex-col border-r border-slate-600 print:border-r">
                         <div class="grid-header text-purple-300 print:text-black bg-purple-900/10 print:bg-transparent print:border-black font-bold text-[1.225rem]">00:00 ~ 08:00 (야간)</div>
                         <textarea id="val_shift_1" class="cell-input left-align flex-auto sync-item shift-input min-h-[215px] print:min-h-0 hide-on-print" placeholder="특이사항 기록..."></textarea>
@@ -342,17 +367,51 @@
                 </div>
             </div>            
 
+            <!-- [수정됨] 탱크 압력 및 재고 가동 현황 폰트 사양 2배 스케일 업 -->
             <div class="flex flex-col mt-0.5">
                 <div class="section-title"><span class="w-1 h-5 bg-cyan-500 mr-2 rounded-full print:bg-black"></span>00시 기준 탱크 압력 및 재고, 가동 현황</div>
                 <div class="bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 print:p-1 flex flex-wrap gap-x-6 gap-y-1.5 items-center justify-between shadow-inner print:border-black print:bg-transparent print:shadow-none print:gap-x-3 print:gap-y-0.5">
-                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-0.5 bg-slate-800 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-slate-300 print:text-black print:text-xs">공업압력:</span><input type="text" id="val_press_ind" class="w-14 bg-transparent text-white print:text-black font-black text-xl text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-sm"></div>
-                    <div class="flex items-center gap-2 border border-slate-500 rounded px-3 py-0.5 bg-slate-800 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-slate-300 print:text-black print:text-xs">식음압력:</span><input type="text" id="val_press_bev" class="w-14 bg-transparent text-white print:text-black font-black text-xl text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-sm"></div>
-                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#1:</span><input type="text" id="val_t1" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
-                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#2:</span><input type="text" id="val_t2" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
-                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#3:</span><input type="text" id="val_t3" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
-                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#4:</span><input type="text" id="val_t4" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
-                    <div class="flex items-center gap-2"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">#5:</span><input type="text" id="val_t5" class="w-12 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-xl text-center outline-none sync-item print:text-sm"></div>
-                    <div class="flex items-center gap-3 border border-rose-500/50 rounded px-3 py-0.5 bg-rose-900/20 print:border-black print:bg-transparent print:px-1.5 print:py-0.5"><span class="text-sm font-bold text-rose-300 print:text-black print:text-xs">액화 가동:</span><input type="text" id="val_eq_run" class="w-8 bg-transparent text-rose-400 print:text-black font-black text-2xl text-center outline-none sync-item border-b border-rose-500/50 print:border-black print:text-sm"><span class="text-sm font-bold text-slate-400 print:text-black print:text-xs">대</span></div>
+                    
+                    <!-- 공업압력 (크기 2배 확대 및 가로폭 w-20 확보) -->
+                    <div class="flex items-center gap-2 border border-slate-500 rounded px-4 py-1 bg-slate-800 print:border-black print:bg-transparent print:px-2 print:py-0.5">
+                        <span class="text-xl font-bold text-slate-300 print:text-black print:text-base">공업압력:</span>
+                        <input type="text" id="val_press_ind" class="w-20 bg-transparent text-white print:text-black font-black text-[2.2rem] text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-lg">
+                    </div>
+                    
+                    <!-- 식음압력 (크기 2배 확대 및 가로폭 w-20 확보) -->
+                    <div class="flex items-center gap-2 border border-slate-500 rounded px-4 py-1 bg-slate-800 print:border-black print:bg-transparent print:px-2 print:py-0.5">
+                        <span class="text-xl font-bold text-slate-300 print:text-black print:text-base">식음압력:</span>
+                        <input type="text" id="val_press_bev" class="w-20 bg-transparent text-white print:text-black font-black text-[2.2rem] text-center outline-none sync-item border-b border-slate-600 print:border-black print:text-lg">
+                    </div>
+                    
+                    <!-- 탱크 #1 ~ #5 (폰트 스케일 및 입력 상자 폭 최적화) -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-bold text-slate-400 print:text-black print:text-base">#1:</span>
+                        <input type="text" id="val_t1" class="w-20 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-[2.2rem] text-center outline-none sync-item print:text-lg">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-bold text-slate-400 print:text-black print:text-base">#2:</span>
+                        <input type="text" id="val_t2" class="w-20 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-[2.2rem] text-center outline-none sync-item print:text-lg">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-bold text-slate-400 print:text-black print:text-base">#3:</span>
+                        <input type="text" id="val_t3" class="w-20 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-[2.2rem] text-center outline-none sync-item print:text-lg">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-bold text-slate-400 print:text-black print:text-base">#4:</span>
+                        <input type="text" id="val_t4" class="w-20 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-[2.2rem] text-center outline-none sync-item print:text-lg">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-bold text-slate-400 print:text-black print:text-base">#5:</span>
+                        <input type="text" id="val_t5" class="w-20 bg-transparent border-b-2 border-slate-500 print:border-black focus:border-cyan-400 text-cyan-300 print:text-black font-black text-[2.2rem] text-center outline-none sync-item print:text-lg">
+                    </div>
+                    
+                    <!-- 액화 가동 -->
+                    <div class="flex items-center gap-3 border border-rose-500/50 rounded px-4 py-1 bg-rose-900/20 print:border-black print:bg-transparent print:px-2 print:py-0.5">
+                        <span class="text-xl font-bold text-rose-300 print:text-black print:text-base">액화 가동:</span>
+                        <input type="text" id="val_eq_run" class="w-12 bg-transparent text-rose-400 print:text-black font-black text-[2.5rem] text-center outline-none sync-item border-b border-rose-500/50 print:border-black print:text-xl">
+                        <span class="text-xl font-bold text-slate-400 print:text-black print:text-base">대</span>
+                    </div>
                 </div>
             </div>
 
