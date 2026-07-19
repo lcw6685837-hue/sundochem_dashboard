@@ -134,25 +134,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
-        // 로그인 인증 성공! -> Firebase DB 연동 시작
         setupDatabaseSync();
     } else {
-        // 미인증자는 로그인 화면으로 강제 이동
         window.location.replace("index.html");
     }
   });
 
   function setupDatabaseSync() {
-      const allInputs = document.querySelectorAll('input[type="text"]');
-      allInputs.forEach((input, index) => {
-        const syncKey = input.id || "input_idx_" + index;
+      // 🍒 [리팩토링] 고유 ID가 명확하게 등록된 텍스트 인풋만 선별하여 실시간 통신 바인딩
+      const explicitInputs = document.querySelectorAll('input[type="text"][id]');
+      explicitInputs.forEach((input) => {
+        const syncKey = input.id;
         input.addEventListener("input", (e) => { db.ref("dashboard/inputs/" + syncKey).set(e.target.value); });
       });
 
       db.ref("dashboard/inputs").on("value", (snapshot) => {
         const data = snapshot.val() || {};
-        allInputs.forEach((input, index) => {
-          const syncKey = input.id || "input_idx_" + index;
+        explicitInputs.forEach((input) => {
+          const syncKey = input.id;
           if (data[syncKey] !== undefined && document.activeElement !== input) {
             if (input.value !== data[syncKey]) {
               input.value = data[syncKey];
@@ -240,16 +239,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // ==========================================
-      // 🍒 [핵심 기능] 근무일지 N뱃지 실시간 감시 로직
-      // ==========================================
       const badgeEl = document.getElementById("work-log-badge");
       if (badgeEl) {
         db.ref("notifications/work_log_updated").on("value", (snap) => {
           const lastUpdated = snap.val() || 0;
           const lastViewed = parseInt(localStorage.getItem("workLogLastViewed") || "0", 10);
-          
-          // DB 시간이 내가 확인한 시간보다 크면 N뱃지 띄우기!
           if (lastUpdated > lastViewed) {
             badgeEl.classList.remove("hidden");
           } else {
@@ -257,20 +251,12 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       }
-  } // end of setupDatabaseSync
+  }
 
-  // ==========================================
-  // 🍒 [전역 함수] 근무일지 열기 (버튼 클릭 시 실행)
-  // ==========================================
   window.openWorkLog = function() {
-      // 1. 현재 클릭한 시간을 로컬 저장소에 기록 (나 확인했음!)
       localStorage.setItem("workLogLastViewed", Date.now().toString());
-      
-      // 2. N뱃지를 즉시 숨김
       const badgeEl = document.getElementById("work-log-badge");
       if (badgeEl) badgeEl.classList.add("hidden");
-      
-      // 3. 근무일지 팝업창 띄우기
       window.open('work_log.html', '_blank', 'width=1400,height=950,scrollbars=yes');
   };
 
