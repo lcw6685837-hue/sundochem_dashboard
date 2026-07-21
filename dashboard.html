@@ -109,9 +109,12 @@
                 <button onclick="window.open('attendance_log.html', '_blank', 'width=1400,height=950,scrollbars=yes')" class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-pink-600 hover:to-pink-700 text-slate-200 hover:text-white border border-slate-500 hover:border-pink-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
                     <i class="fas fa-user-check text-pink-400 group-hover:text-white transition-colors"></i><span>출근일지</span>
                 </button>
-                <button class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-emerald-600 hover:to-emerald-700 text-slate-200 hover:text-white border border-slate-500 hover:border-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
-                    <i class="fas fa-boxes text-emerald-400 group-hover:text-white transition-colors"></i><span>실시간 재고량</span>
+
+                <!-- 🍒 [신규 개편] 영업팀 피드백 반영: '출고요청서' 버튼 (종이비행기 아이콘 & Teal 민트 테마) -->
+                <button onclick="window.open('https://lcw6685837-hue.github.io/dryice-order/', '_blank', 'width=1400,height=900,scrollbars=yes')" class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-teal-600 hover:to-teal-700 text-slate-200 hover:text-white border border-slate-500 hover:border-teal-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
+                    <i class="fas fa-paper-plane text-teal-400 group-hover:text-white transition-colors"></i><span>출고요청서</span>
                 </button>
+
                 <div class="w-px h-auto bg-slate-600 mx-0.5"></div>
                 <div class="flex flex-col gap-1.5">
                     <button onclick="toggleFullScreen()" class="group flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-600 hover:border-slate-400 px-2.5 py-1 rounded-lg text-[10px] font-bold shadow transition-all duration-300 h-full"><i class="fas fa-expand group-hover:scale-110 transition-transform"></i><span>전체화면</span></button>
@@ -121,7 +124,6 @@
         </div>
     </header>
 
-    <!-- 🍒 상단 생산량 카드 4개 영역 크기 고도화 적용 부문 -->
     <section class="grid grid-cols-1 lg:grid-cols-5 gap-3 relative z-10 shrink-0">
         <!-- Card 1: L-CO2 (공업용) -->
         <div class="dashboard-card !p-3 border-t-4 border-t-blue-400 flex flex-col">
@@ -219,7 +221,7 @@
             </div>
         </div>
         
-        <!-- Card 5: 수율 / 원료순도 (기존 유지) -->
+        <!-- Card 5: 수율 / 원료순도 -->
         <div class="dashboard-card !p-3 border-t-4 border-t-purple-400 flex flex-col">
             <div class="flex items-center gap-2 mb-1 pb-1.5 border-b border-slate-600">
                 <div class="bg-purple-900/40 w-8 h-8 rounded-lg flex items-center justify-center border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.2)] shrink-0"><i class="fas fa-vial text-purple-400 text-lg"></i></div>
@@ -244,7 +246,7 @@
         </div>
     </section>
 
-    <!-- 하단 유틸리티 및 저장탱크 섹션 (기존 유지) -->
+    <!-- 하단 유틸리티 및 저장탱크 섹션 -->
     <section class="grid grid-cols-1 lg:grid-cols-4 gap-3 flex-1 relative z-10">
         
         <div class="dashboard-card !p-3 flex flex-col h-full min-h-[320px] border-t-4 border-t-slate-500">
