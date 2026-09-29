@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         setupDatabaseSync();
-        // 🍒 [현장 피드백 반영] 자정 자율 데이터 자동 이관(Rollover) 스케줄러 삭제 완료
+        // 🍒 [현장 피드백 반영] 자정 데이터 이관(Rollover) 스케줄러 완전 제거
     } else {
         window.location.replace("index.html");
     }
@@ -397,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dateInput.addEventListener("change", saveDateToDb);
         dateInput.addEventListener("input", saveDateToDb);
       } else {
-        fetchKepcoPowerLogs("2026-09-29");
+        fetchKepcoPowerLogs("2026-09-30");
       }
 
       const toggleGroups = document.querySelectorAll(".toggle-group");

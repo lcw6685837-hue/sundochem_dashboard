@@ -46,7 +46,7 @@
                         <h1 class="text-3xl font-black text-white tracking-widest leading-none">SUNDOCHEM</h1>
                         <div class="flex items-center gap-2 text-slate-400 text-[11px] font-medium relative z-30">
                             <label for="date-input">생산일보:</label>
-                            <input type="date" id="date-input" value="2026-09-28" class="bg-[#0f172a] border border-slate-600 rounded px-1.5 py-0.5 focus:border-blue-500 outline-none text-white w-[110px] cursor-pointer hover:bg-slate-800 transition [color-scheme:dark]">
+                            <input type="date" id="date-input" value="2026-09-30" class="bg-[#0f172a] border border-slate-600 rounded px-1.5 py-0.5 focus:border-blue-500 outline-none text-white w-[110px] cursor-pointer hover:bg-slate-800 transition [color-scheme:dark]">
                         </div>
                     </div>
                     <div class="flex items-start gap-1 transform scale-75 origin-left -mt-1 relative z-10">
@@ -395,7 +395,7 @@
             </div>
         </div>
 
-        <!-- 🍒 [개편된 원료가스 입고량 카드: PSA vs HMU 2컬럼 최적화 분할 레이아웃] -->
+        <!-- 원료가스 입고량 카드 -->
         <div class="dashboard-card !p-3 flex flex-col h-full min-h-[320px] border-t-4 border-t-red-500">
             <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-600">
                 <div class="bg-red-900/40 w-8 h-8 rounded-lg flex items-center justify-center border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
@@ -705,7 +705,8 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 🍒 [캐시 무효화 적용] script.js 버전 쿼리스트링 v=20260930_02 바인딩 -->
+    <script src="script.js?v=20260930_02"></script>
 
     <script>
         function scheduleMidnightRefresh() {
