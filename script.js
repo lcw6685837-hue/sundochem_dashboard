@@ -146,47 +146,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupInventoryRatio("today-ind-ton", "today-ind-input", "today-ind-fill", 2900, true);
   setupInventoryRatio("today-bev-ton", "today-bev-input", "today-bev-fill", 800, false);
 
-  // 자정 자율 데이터 이관 스케줄러
-  function setupMidnightAutoRollover() {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const kst = new Date(utc + 3600000 * 9);
-    const todayStr = kst.toISOString().substring(0, 10);
-
-    db.ref("dashboard/last_rollover_date").once("value", (snapshot) => {
-      const lastRollover = snapshot.val();
-      if (lastRollover && lastRollover < todayStr) {
-        performInventoryRollover(todayStr);
-      } else if (!lastRollover) {
-        db.ref("dashboard/last_rollover_date").set(todayStr);
-      }
-    });
-
-    const tomorrow = new Date(kst.getFullYear(), kst.getMonth(), kst.getDate() + 1, 0, 0, 5);
-    const msUntilMidnight = tomorrow.getTime() - kst.getTime();
-    setTimeout(() => {
-      const newNow = new Date();
-      const newUtc = newNow.getTime() + newNow.getTimezoneOffset() * 60000;
-      const newKst = new Date(newUtc + 3600000 * 9);
-      performInventoryRollover(newKst.toISOString().substring(0, 10));
-      setupMidnightAutoRollover();
-    }, msUntilMidnight);
-  }
-
-  function performInventoryRollover(newDateStr) {
-    db.ref("dashboard/inputs").once("value", (snap) => {
-      const inputs = snap.val() || {};
-      const todayIndVal = inputs["today-ind-ton"] || "0";
-      const todayBevVal = inputs["today-bev-ton"] || "0";
-
-      db.ref("dashboard/inputs/prev-ind-input").set(todayIndVal);
-      db.ref("dashboard/inputs/prev-bev-input").set(todayBevVal);
-      db.ref("dashboard/last_rollover_date").set(newDateStr);
-
-      console.log(`🌙 [자율 이관 완료] ${newDateStr} 자정: 금일재고(${todayIndVal}/${todayBevVal}) -> 전일재고 자율 이관 성공`);
-    });
-  }
-
   // 5. 저장탱크 합계 연산
   const tk1 = document.getElementById("tank1-ton");
   const tk2 = document.getElementById("tank2-ton");
@@ -384,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         setupDatabaseSync();
-        setupMidnightAutoRollover();
+        // 🍒 [현장 피드백 반영] 자정 자율 데이터 자동 이관(Rollover) 스케줄러 삭제 완료
     } else {
         window.location.replace("index.html");
     }
@@ -412,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      // 🍒 [보완] 날짜 변경 실시간 연동 및 동기화
+      // 날짜 변경 실시간 연동 및 동기화
       const dateInput = document.getElementById("date-input");
       const dateSyncKey = "dashboard/production_date";
 
@@ -438,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dateInput.addEventListener("change", saveDateToDb);
         dateInput.addEventListener("input", saveDateToDb);
       } else {
-        fetchKepcoPowerLogs("2026-09-28");
+        fetchKepcoPowerLogs("2026-09-29");
       }
 
       const toggleGroups = document.querySelectorAll(".toggle-group");
@@ -696,7 +655,6 @@ document.addEventListener("DOMContentLoaded", () => {
         alert(`${yearMonthKey} (${updatedCount}건 스마트 파싱) 데이터가 DB에 저장되고 차트에 자동 반영되었습니다!`);
         closeKepcoModal();
 
-        // 🍒 [보완] 날짜를 01일로 강제 변경하지 않고 현재 사용자가 지정한 날짜를 그대로 유지
         if (dateInput && dateInput.value) {
           db.ref("dashboard/production_date").set(dateInput.value);
         }
