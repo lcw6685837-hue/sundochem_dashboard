@@ -103,12 +103,20 @@
                         <i class="fas fa-truck-loading text-amber-400 group-hover:text-white transition-colors"></i> <span>출고일지</span>
                     </button>
                 </div>
+                
                 <button onclick="window.openWorkLog()" class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-purple-600 hover:to-purple-700 text-slate-200 hover:text-white border border-slate-500 hover:border-purple-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
                     <i class="fas fa-clipboard-list text-purple-400 group-hover:text-white transition-colors"></i><span>근무일지</span><span id="work-log-badge" class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-lg border border-rose-400 animate-bounce hidden">N</span>
                 </button>
-                <button onclick="window.open('attendance_log.html', '_blank', 'width=1400,height=950,scrollbars=yes')" class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-pink-600 hover:to-pink-700 text-slate-200 hover:text-white border border-slate-500 hover:border-pink-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
-                    <i class="fas fa-user-check text-pink-400 group-hover:text-white transition-colors"></i><span>출근일지</span>
-                </button>
+
+                <!-- 🍒 [공무팀 요청] 출근일지 & 공무일지 2단 위아래 분할 레이아웃 -->
+                <div class="flex flex-col gap-1.5">
+                    <button onclick="window.open('attendance_log.html', '_blank', 'width=1400,height=950,scrollbars=yes')" class="group relative flex items-center justify-center gap-1.5 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-pink-600 hover:to-pink-700 text-slate-200 hover:text-white border border-slate-500 hover:border-pink-400 px-3 py-1 rounded-lg text-[10px] font-bold shadow-md transition-all duration-300 h-full">
+                        <i class="fas fa-user-check text-pink-400 group-hover:text-white transition-colors"></i> <span>출근일지</span>
+                    </button>
+                    <button onclick="window.open('https://lcw6685837-hue.github.io/job-sheet', '_blank', 'width=1400,height=900,scrollbars=yes')" class="group relative flex items-center justify-center gap-1.5 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-slate-200 hover:text-white border border-slate-500 hover:border-slate-400 px-3 py-1 rounded-lg text-[10px] font-bold shadow-md transition-all duration-300 h-full">
+                        <i class="fas fa-tools text-slate-300 group-hover:text-white transition-colors"></i> <span>공무일지</span>
+                    </button>
+                </div>
 
                 <button onclick="window.open('https://lcw6685837-hue.github.io/dryice-order/', '_blank', 'width=1400,height=900,scrollbars=yes')" class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-teal-600 hover:to-teal-700 text-slate-200 hover:text-white border border-slate-500 hover:border-teal-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
                     <i class="fas fa-paper-plane text-teal-400 group-hover:text-white transition-colors"></i><span>출고요청서</span>
@@ -705,7 +713,7 @@
         </div>
     </div>
 
-    <!-- 🍒 [캐시 무효화 적용] script.js 버전 쿼리스트링 v=20260930_02 바인딩 -->
+    <!-- 캐시 무효화 적용 script.js 바인딩 -->
     <script src="script.js?v=20260930_02"></script>
 
     <script>
