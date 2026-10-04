@@ -339,25 +339,45 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sumElem) sumElem.innerHTML = `${formatCommaNum(sumVal)} <span class="text-[9px] font-normal text-slate-400">kWh</span>`;
   }
 
-  // 7. Firebase 데이터 실시간 동기화
+  // 7. Firebase 데이터 실시간 동기화 및 선택적 일별 아카이빙 파이프라인
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         setupDatabaseSync();
-        // 🍒 [현장 피드백 반영] 자정 데이터 이관(Rollover) 스케줄러 완전 제거
     } else {
         window.location.replace("index.html");
     }
   });
 
   function setupDatabaseSync() {
+      // 일별 저장 대상 필드 키 ID 목록
+      const targetArchiveKeys = [
+        "prod-lco2-ind-day", "prod-lco2-ind-month",
+        "prod-lco2-bev-day", "prod-lco2-bev-month",
+        "prod-total-day", "prod-total-month",
+        "prod-dryice-day", "prod-dryice-month",
+        "today-ind-ton", "today-bev-ton",
+        "util-labor-day", "util-labor-month",
+        "util-water-day", "util-water-month",
+        "util-power-day", "util-power-month",
+        "util-power-cost"
+      ];
+
       const explicitInputs = document.querySelectorAll('input[type="text"][id]');
+      const dateInput = document.getElementById("date-input");
+
+      // 실시간 입력 연동 및 지정 항목 일별 DB 아카이빙 저장
       explicitInputs.forEach((input) => {
         const syncKey = input.id;
         input.addEventListener("input", (e) => { 
           db.ref("dashboard/inputs/" + syncKey).set(e.target.value); 
+
+          if (targetArchiveKeys.includes(syncKey) && dateInput && dateInput.value) {
+            db.ref(`production_logs/${dateInput.value}/${syncKey}`).set(e.target.value);
+          }
         });
       });
 
+      // 실시간 데이터 변경 감지
       db.ref("dashboard/inputs").on("value", (snapshot) => {
         const data = snapshot.val() || {};
         explicitInputs.forEach((input) => {
@@ -371,9 +391,67 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      // 날짜 변경 실시간 연동 및 동기화
-      const dateInput = document.getElementById("date-input");
+      // 날짜 변경 시 해당 일자 아카이빙 데이터 자동 로드 및 연동
       const dateSyncKey = "dashboard/production_date";
+
+      function loadDailyLogForDate(dateStr) {
+        if (!dateStr) return;
+        
+        db.ref(`production_logs/${dateStr}`).once("value", (snapshot) => {
+          const logData = snapshot.val();
+          if (logData) {
+            targetArchiveKeys.forEach((key) => {
+              const el = document.getElementById(key);
+              if (el && logData[key] !== undefined) {
+                el.value = logData[key];
+                el.dispatchEvent(new Event("input"));
+              }
+            });
+          }
+        });
+
+        fetchKepcoPowerLogs(dateStr);
+      }
+
+      // 🍒 [생산일보 퀵 이동 버튼 이벤트 핸들러 추가]
+      const prevBtn = document.getElementById("prev-date-btn");
+      const nextBtn = document.getElementById("next-date-btn");
+      const todayBtn = document.getElementById("today-date-btn");
+
+      function shiftProductionDate(daysOffset) {
+        if (!dateInput || !dateInput.value) return;
+        const currentDate = new Date(dateInput.value + "T00:00:00");
+        currentDate.setDate(currentDate.getDate() + daysOffset);
+
+        const yyyy = currentDate.getFullYear();
+        const mm = String(currentDate.getMonth() + 1).padStart(2, "0");
+        const dd = String(currentDate.getDate()).padStart(2, "0");
+        const targetDateStr = `${yyyy}-${mm}-${dd}`;
+
+        dateInput.value = targetDateStr;
+        dateInput.dispatchEvent(new Event("change"));
+      }
+
+      if (prevBtn) prevBtn.addEventListener("click", () => shiftProductionDate(-1));
+      if (nextBtn) nextBtn.addEventListener("click", () => shiftProductionDate(1));
+      
+      if (todayBtn) {
+        todayBtn.addEventListener("click", () => {
+          const now = new Date();
+          const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+          const kst = new Date(utc + 3600000 * 9);
+
+          const yyyy = kst.getFullYear();
+          const mm = String(kst.getMonth() + 1).padStart(2, "0");
+          const dd = String(kst.getDate()).padStart(2, "0");
+          const todayStr = `${yyyy}-${mm}-${dd}`;
+
+          if (dateInput) {
+            dateInput.value = todayStr;
+            dateInput.dispatchEvent(new Event("change"));
+          }
+        });
+      }
 
       if (dateInput) {
         db.ref(dateSyncKey).on("value", (snapshot) => {
@@ -382,22 +460,23 @@ document.addEventListener("DOMContentLoaded", () => {
             if (document.activeElement !== dateInput) { 
               dateInput.value = savedDate; 
             }
-            fetchKepcoPowerLogs(savedDate);
+            loadDailyLogForDate(savedDate);
           } else {
-            fetchKepcoPowerLogs(dateInput.value);
+            loadDailyLogForDate(dateInput.value);
           }
         });
 
         const saveDateToDb = (e) => {
           if (e.target.value) {
             db.ref(dateSyncKey).set(e.target.value);
+            loadDailyLogForDate(e.target.value);
           }
         };
 
         dateInput.addEventListener("change", saveDateToDb);
         dateInput.addEventListener("input", saveDateToDb);
       } else {
-        fetchKepcoPowerLogs("2026-09-30");
+        fetchKepcoPowerLogs("2026-10-04");
       }
 
       const toggleGroups = document.querySelectorAll(".toggle-group");
@@ -525,7 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const textInput = document.getElementById("kepco-paste-input");
     const dateInput = document.getElementById("date-input");
 
-    let currentYearMonth = "2026-09";
+    let currentYearMonth = "2026-10";
     if (dateInput && dateInput.value) {
       currentYearMonth = dateInput.value.substring(0, 7);
     }
@@ -607,7 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dateInput && dateInput.value) {
         detectedMonth = parseInt(dateInput.value.substring(5, 7), 10);
       } else {
-        detectedMonth = 9;
+        detectedMonth = 10;
       }
     }
 
