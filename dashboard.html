@@ -56,7 +56,7 @@
                 </div>
             </div>
 
-            <!-- 🍒 생산일보 빅 배지 (◀ / ▶ 이동 및 TODAY 퀵 버튼 통합) -->
+            <!-- 생산일보 빅 배지 (◀ / ▶ 이동 및 TODAY 퀵 버튼 통합) -->
             <div class="hidden xl:flex flex-col items-center gap-1.5 shrink-0">
                 <div class="flex items-center justify-center bg-[#0f172a]/95 border-2 border-slate-500/80 rounded-xl px-3 py-1 shadow-lg backdrop-blur-md gap-1.5">
                     <!-- 이전 날짜 이동 버튼 (◀) -->
@@ -67,7 +67,7 @@
                     <label for="date-input" class="text-cyan-400 font-black text-lg xl:text-xl tracking-[0.15em] whitespace-nowrap drop-shadow-[0_0_8px_rgba(56,189,248,0.6)] cursor-pointer select-none ml-0.5">
                         생 산 일 보 :
                     </label>
-                    <input type="date" id="date-input" value="2026-10-04" class="bg-transparent text-cyan-300 font-black text-xl xl:text-2xl outline-none cursor-pointer hover:text-white transition-colors [color-scheme:dark] tracking-wider">
+                    <input type="date" id="date-input" value="2026-10-06" class="bg-transparent text-cyan-300 font-black text-xl xl:text-2xl outline-none cursor-pointer hover:text-white transition-colors [color-scheme:dark] tracking-wider">
 
                     <!-- 다음 날짜 이동 버튼 (▶) -->
                     <button id="next-date-btn" title="내일 일보" class="text-cyan-400 hover:text-white hover:bg-slate-700/60 p-1.5 rounded-lg transition-all active:scale-90 flex items-center justify-center">
@@ -140,9 +140,15 @@
                     </button>
                 </div>
 
-                <button onclick="window.open('https://lcw6685837-hue.github.io/dryice-order/', '_blank', 'width=1400,height=900,scrollbars=yes')" class="group relative flex items-center gap-2 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-teal-600 hover:to-teal-700 text-slate-200 hover:text-white border border-slate-500 hover:border-teal-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all duration-300">
-                    <i class="fas fa-paper-plane text-teal-400 group-hover:text-white transition-colors"></i><span>출고요청서</span>
-                </button>
+                <!-- 🍒 [전기팀 요청 반영] 출고요청서 & 수전일지 2단 상하 분할 그룹 -->
+                <div class="flex flex-col gap-1.5">
+                    <button onclick="window.open('https://lcw6685837-hue.github.io/dryice-order/', '_blank', 'width=1400,height=900,scrollbars=yes')" class="group relative flex items-center justify-center gap-1.5 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-teal-600 hover:to-teal-700 text-slate-200 hover:text-white border border-slate-500 hover:border-teal-400 px-3 py-1 rounded-lg text-[10px] font-bold shadow-md transition-all duration-300 h-full">
+                        <i class="fas fa-paper-plane text-teal-400 group-hover:text-white transition-colors"></i> <span>출고요청서</span>
+                    </button>
+                    <button onclick="window.open('https://lcw6685837-hue.github.io/electrical-substation_log/', '_blank', 'width=1400,height=900,scrollbars=yes')" class="group relative flex items-center justify-center gap-1.5 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-amber-600 hover:to-amber-700 text-slate-200 hover:text-white border border-slate-500 hover:border-amber-400 px-3 py-1 rounded-lg text-[10px] font-bold shadow-md transition-all duration-300 h-full">
+                        <i class="fas fa-bolt text-amber-400 group-hover:text-white transition-colors"></i> <span>수전일지</span>
+                    </button>
+                </div>
 
                 <div class="w-px h-auto bg-slate-600 mx-0.5"></div>
                 <div class="flex flex-col gap-1.5">
@@ -736,7 +742,7 @@
     </div>
 
     <!-- 캐시 무효화 적용 script.js 바인딩 -->
-    <script src="script.js?v=20261004_01"></script>
+    <script src="script.js?v=20261006_01"></script>
 
     <script>
         function scheduleMidnightRefresh() {
