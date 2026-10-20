@@ -52,6 +52,9 @@ const EQUIPMENT = [
   { name: "#2-5 PSA(V/P)", group: "psa2" }
 ];
 
+// 전일재고는 PC 현황판에서 날짜별로 보관되지 않으므로, 지난 일보 조회 시 전날 일보의 금일재고를 사용한다
+const PREV_STOCK_KEYS = { "prev-ind-input": "today-ind-ton", "prev-bev-input": "today-bev-ton" };
+
 // 재고 게이지 최대 용량 (PC 현황판과 동일)
 const CAPACITY = { ind: 2900, bev: 800 };
 
@@ -61,6 +64,7 @@ const state = {
   inputs: {},        // dashboard/inputs (현장 PC 화면의 현재 값)
   toggles: {},       // dashboard/toggles
   log: null,         // production_logs/{조회 날짜} (지난 일보 조회 시)
+  prevLog: null,     // production_logs/{조회 날짜 전날} (전일재고 표시용)
   logLoaded: false,
   pcDate: null,      // 현장 PC 현황판이 보고 있는 날짜
   viewDate: null,    // 휴대폰에서 보고 있는 날짜
@@ -110,8 +114,9 @@ function isFollowingPc() {
 // 현장 PC와 같은 날짜면 PC 화면 값을, 지난 일보를 볼 때는 해당 날짜 기록을 사용한다.
 // 기록에 없는 일보 항목은 이전 날짜 값이 남지 않도록 "-"로 표시한다.
 function valueOf(key) {
-  if (!isFollowingPc() && ARCHIVE_KEYS.includes(key)) {
-    return state.log ? state.log[key] : undefined;
+  if (!isFollowingPc()) {
+    if (ARCHIVE_KEYS.includes(key)) return state.log ? state.log[key] : undefined;
+    if (PREV_STOCK_KEYS[key]) return state.prevLog ? state.prevLog[PREV_STOCK_KEYS[key]] : undefined;
   }
   return state.inputs[key];
 }
@@ -236,15 +241,29 @@ function updateClock() {
 
 // ===== 지난 일보 조회 =====
 let logRef = null;
+let prevLogRef = null;
 
 function watchLog() {
   if (logRef) {
     logRef.off();
     logRef = null;
   }
+  if (prevLogRef) {
+    prevLogRef.off();
+    prevLogRef = null;
+  }
   state.log = null;
+  state.prevLog = null;
   state.logLoaded = false;
   if (isFollowingPc()) return;
+
+  const prevRef = db.ref("production_logs/" + shiftDateStr(state.viewDate, -1));
+  prevLogRef = prevRef;
+  prevRef.on("value", (snap) => {
+    if (prevLogRef !== prevRef) return;
+    state.prevLog = snap.val();
+    renderValues();
+  });
 
   const ref = db.ref("production_logs/" + state.viewDate);
   logRef = ref;
