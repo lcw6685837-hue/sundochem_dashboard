@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="생산현황판">
+    <title>SUNDOCHEM 생산현황판 (모바일)</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link rel="icon" href="../logo.png">
+    <link rel="apple-touch-icon" href="../logo.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20261020_01">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body class="is-loading">
+
+    <div class="loading-screen">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <span>로그인 확인 중...</span>
+    </div>
+
+    <!-- 상단 고정 바: 로고 / 시계 / 설비상태 / 생산일보 날짜 -->
+    <header class="topbar">
+        <div class="topbar-row">
+            <div class="brand">
+                <img src="../logo.png" alt="SUNDOCHEM Logo">
+                <div>
+                    <strong>SUNDOCHEM</strong>
+                    <span>생산현황판</span>
+                </div>
+            </div>
+            <button id="logout-btn" type="button" class="icon-btn logout" aria-label="로그아웃"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+
+        <div class="topbar-row">
+            <div id="clock" class="clock num">----.--.-- --:--:--</div>
+            <div id="defcon-pill" class="status-pill" data-level="0">
+                <span class="dot"></span><span id="defcon-text">전 설비 정상 가동중</span>
+            </div>
+        </div>
+
+        <div class="datebar">
+            <button id="prev-date-btn" type="button" class="icon-btn" aria-label="이전 날짜"><i class="fas fa-chevron-left"></i></button>
+            <input type="date" id="date-input" aria-label="생산일보 날짜">
+            <button id="next-date-btn" type="button" class="icon-btn" aria-label="다음 날짜"><i class="fas fa-chevron-right"></i></button>
+            <button id="today-date-btn" type="button" class="today-btn">TODAY</button>
+        </div>
+
+        <div id="mode-bar" class="mode-bar"></div>
+    </header>
+
+    <div id="offline-banner" class="offline-banner hidden">
+        <i class="fas fa-wifi"></i> 서버 연결이 끊겼습니다. 다시 연결되면 자동으로 갱신됩니다.
+    </div>
+
+    <main>
+        <!-- 무재해 -->
+        <div class="strip">
+            <i class="fas fa-hard-hat"></i>
+            <span>무재해 달성</span>
+            <b class="num" data-key="no-accident-days">-</b>
+            <span>일차</span>
+        </div>
+
+        <!-- 생산 현황 -->
+        <section class="card accent-blue">
+            <div class="card-head">
+                <h2><i class="fas fa-industry"></i>생산 현황</h2>
+                <span class="tag tag-log">일보</span>
+            </div>
+            <div class="tile-grid">
+                <div class="tile accent-blue">
+                    <div class="tile-title">L-CO2 (공업용)</div>
+                    <div class="tile-main"><span class="num" data-key="prod-lco2-ind-day">-</span><small class="unit">Ton</small></div>
+                    <div class="tile-sub">월누계 <span><b class="num" data-key="prod-lco2-ind-month">-</b> <small class="unit">Ton</small></span></div>
+                </div>
+                <div class="tile accent-cyan">
+                    <div class="tile-title">L-CO2 (음료용)</div>
+                    <div class="tile-main"><span class="num" data-key="prod-lco2-bev-day">-</span><small class="unit">Ton</small></div>
+                    <div class="tile-sub">월누계 <span><b class="num" data-key="prod-lco2-bev-month">-</b> <small class="unit">Ton</small></span></div>
+                </div>
+                <div class="tile accent-green">
+                    <div class="tile-title">당일 총생산량</div>
+                    <div class="tile-main"><span class="num" data-key="prod-total-day">-</span><small class="unit">Ton</small></div>
+                    <div class="tile-sub">월누계 <span><b class="num" data-key="prod-total-month">-</b> <small class="unit">Ton</small></span></div>
+                </div>
+                <div class="tile accent-indigo">
+                    <div class="tile-title">Dry Ice</div>
+                    <div class="tile-main"><span class="num" data-key="prod-dryice-day">-</span><small class="unit">Ton</small></div>
+                    <div class="tile-sub">월누계 <span><b class="num" data-key="prod-dryice-month">-</b> <small class="unit">Ton</small></span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 수율 / 원료순도 -->
+        <section class="card accent-purple">
+            <div class="card-head">
+                <h2><i class="fas fa-vial"></i>수율 / 원료순도</h2>
+                <span class="tag tag-live">실시간</span>
+            </div>
+            <div class="ring-row">
+                <div class="ring-item">
+                    <div id="yield-ring" class="ring" style="--color:#10b981"><span class="num"><b data-key="yield-input">-</b><small>%</small></span></div>
+                    <label>생산수율</label>
+                </div>
+                <div class="ring-item">
+                    <div id="purity-ring" class="ring" style="--color:#f59e0b"><span class="num"><b data-key="purity-input">-</b><small>%</small></span></div>
+                    <label>가스순도</label>
+                </div>
+            </div>
+        </section>
+
+        <!-- 재고 현황 -->
+        <section class="card accent-blue">
+            <div class="card-head">
+                <h2><i class="fas fa-boxes"></i>재고 현황</h2>
+            </div>
+
+            <div class="inv-block">
+                <div class="inv-head">
+                    <span class="inv-label">금일재고</span>
+                    <span class="tag tag-log">일보</span>
+                    <span class="inv-total num"><span id="today-total">-</span> <small class="unit">Ton</small></span>
+                </div>
+                <div class="inv-row">
+                    <span class="inv-name">공업용</span>
+                    <span class="inv-ton num"><span data-key="today-ind-ton">-</span> <small class="unit">Ton</small></span>
+                    <div class="bar"><div id="today-ind-fill" class="bar-fill ind"></div><span id="today-ind-pct" class="bar-label num">-</span></div>
+                </div>
+                <div class="inv-row">
+                    <span class="inv-name">식음용</span>
+                    <span class="inv-ton num"><span data-key="today-bev-ton">-</span> <small class="unit">Ton</small></span>
+                    <div class="bar"><div id="today-bev-fill" class="bar-fill bev"></div><span id="today-bev-pct" class="bar-label num">-</span></div>
+                </div>
+            </div>
+
+            <div class="inv-block">
+                <div class="inv-head">
+                    <span class="inv-label">전일재고</span>
+                    <span class="tag tag-live">실시간</span>
+                    <span class="inv-total num"><span id="prev-total">-</span> <small class="unit">Ton</small></span>
+                </div>
+                <div class="inv-row">
+                    <span class="inv-name">공업용</span>
+                    <span class="inv-ton num"><span data-key="prev-ind-input">-</span> <small class="unit">Ton</small></span>
+                    <div class="bar"><div id="prev-ind-fill" class="bar-fill ind"></div><span id="prev-ind-pct" class="bar-label num">-</span></div>
+                </div>
+                <div class="inv-row">
+                    <span class="inv-name">식음용</span>
+                    <span class="inv-ton num"><span data-key="prev-bev-input">-</span> <small class="unit">Ton</small></span>
+                    <div class="bar"><div id="prev-bev-fill" class="bar-fill bev"></div><span id="prev-bev-pct" class="bar-label num">-</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 실시간 저장탱크 재고 -->
+        <section class="card accent-pink">
+            <div class="card-head">
+                <h2><i class="fas fa-database"></i>저장탱크 재고</h2>
+                <div class="card-head-right">
+                    <span class="tank-time">입력시간<b id="tank-time">06시</b></span>
+                    <span class="tag tag-live">실시간</span>
+                </div>
+            </div>
+            <div class="tank-grid">
+                <div class="tank"><div class="tank-name">TANK #1</div><div class="tank-val num" data-key="tank1-ton">-</div><div class="unit">Ton</div></div>
+                <div class="tank"><div class="tank-name">TANK #2</div><div class="tank-val num" data-key="tank2-ton">-</div><div class="unit">Ton</div></div>
+                <div class="tank"><div class="tank-name">TANK #3</div><div class="tank-val num" data-key="tank3-ton">-</div><div class="unit">Ton</div></div>
+                <div class="tank is-bev"><div class="tank-name">TANK #4</div><div class="tank-val num" data-key="tank4-ton">-</div><div class="unit">Ton</div></div>
+                <div class="tank"><div class="tank-name">TANK #5</div><div class="tank-val num" data-key="tank5-ton">-</div><div class="unit">Ton</div></div>
+            </div>
+            <div class="tank-total-grid">
+                <div class="tank tank-total accent-blue"><div class="tank-name">공업용 합계</div><div id="ind-tank-total" class="tank-val num">-</div><div class="unit">Ton</div></div>
+                <div class="tank tank-total accent-green"><div class="tank-name">식음료 합계</div><div id="bev-tank-total" class="tank-val num">-</div><div class="unit">Ton</div></div>
+                <div class="tank tank-total accent-pink"><div class="tank-name">TOTAL</div><div id="all-tank-total" class="tank-val num">-</div><div class="unit">Ton</div></div>
+            </div>
+        </section>
+
+        <!-- 원료가스 입고량 -->
+        <section class="card accent-rose">
+            <div class="card-head">
+                <h2><i class="fas fa-wind"></i>원료가스 입고량</h2>
+                <span class="tag tag-live">실시간</span>
+            </div>
+            <div class="gas-grid">
+                <div class="gas-col accent-orange">
+                    <h3>PSA</h3>
+                    <div class="kv"><span>#1 PSA</span><b class="num" data-key="psa1-input">-</b></div>
+                    <div class="kv"><span>#2 PSA</span><b class="num" data-key="psa2-input">-</b></div>
+                    <div class="kv total"><span>TOTAL</span><b id="psa-total" class="num">-</b></div>
+                </div>
+                <div class="gas-col accent-cyan">
+                    <h3>HMU</h3>
+                    <div class="kv"><span>#1 HMU</span><b class="num" data-key="hmu1-input">-</b></div>
+                    <div class="kv"><span>#3 HMU</span><b class="num" data-key="hmu3-input">-</b></div>
+                    <div class="kv total"><span>TOTAL</span><b id="hmu-total" class="num">-</b></div>
+                </div>
+            </div>
+            <p class="unit-note">단위: m³/hr</p>
+        </section>
+
+        <!-- 유틸리티 현황 -->
+        <section class="card accent-amber">
+            <div class="card-head">
+                <h2><i class="fas fa-bolt"></i>유틸리티 현황</h2>
+                <span class="tag tag-log">일보</span>
+            </div>
+            <table class="util-table num">
+                <thead>
+                    <tr><th>항목</th><th>일일</th><th>월누계</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>용역인원<small>(명)</small></td><td data-key="util-labor-day">-</td><td data-key="util-labor-month">-</td></tr>
+                    <tr><td>공업용수<small>(Ton)</small></td><td data-key="util-water-day">-</td><td data-key="util-water-month">-</td></tr>
+                    <tr><td>수전전력<small>(kw)</small></td><td data-key="util-power-day">-</td><td data-key="util-power-month">-</td></tr>
+                </tbody>
+            </table>
+            <div class="util-cost">전력요금 <b class="num" data-key="util-power-cost">-</b> <small class="unit">원/kw</small></div>
+        </section>
+
+        <!-- 일일 전력사용량 (한전 파워플래너) -->
+        <section class="card accent-teal">
+            <div class="card-head">
+                <h2><i class="fas fa-plug"></i>일일 전력사용량</h2>
+                <a class="ext-link" href="https://pp.kepco.co.kr/" target="_blank" rel="noopener noreferrer">파워플래너 <i class="fas fa-external-link-alt"></i></a>
+            </div>
+            <div class="stat-grid num">
+                <div class="stat accent-rose"><p><i class="fas fa-arrow-up"></i>최대 사용량</p><b id="pwr-max">-</b></div>
+                <div class="stat accent-cyan"><p><i class="fas fa-arrow-down"></i>최소 사용량</p><b id="pwr-min">-</b></div>
+                <div class="stat accent-amber"><p><i class="fas fa-chart-line"></i>일 평균</p><b id="pwr-avg">-</b></div>
+                <div class="stat accent-teal"><p><i class="fas fa-calculator"></i>사용량 합계 <span id="pwr-month"></span></p><b id="pwr-sum">-</b></div>
+            </div>
+            <div class="chart-wrap"><canvas id="energy-chart"></canvas></div>
+        </section>
+
+        <!-- 설비가동현황 -->
+        <section class="card accent-green">
+            <div class="card-head">
+                <h2><i class="fas fa-cogs"></i>설비가동현황</h2>
+                <span class="equip-summary">가동 <b id="equip-on-count">0</b> / <span id="equip-total-count">0</span></span>
+            </div>
+            <ul id="equip-list" class="equip-list"></ul>
+        </section>
+
+        <!-- 바로가기 메뉴 -->
+        <section class="card accent-slate">
+            <details class="shortcuts">
+                <summary>
+                    <h2><i class="fas fa-th-large"></i>바로가기 메뉴</h2>
+                    <i class="fas fa-chevron-down chev"></i>
+                </summary>
+                <div class="shortcut-grid">
+                    <a class="shortcut accent-indigo" href="https://lcw6685837-hue.github.io/dryice_production_log/" target="_blank" rel="noopener"><i class="fas fa-snowflake"></i>D/I 생산</a>
+                    <a class="shortcut accent-blue" href="../monthly_plan.html" target="_blank" rel="noopener"><i class="fas fa-calendar-alt"></i>월간계획</a>
+                    <a class="shortcut accent-amber" href="https://lcw6685837-hue.github.io/outbound_log/index.html" target="_blank" rel="noopener"><i class="fas fa-truck-loading"></i>출고일지</a>
+                    <a id="work-log-link" class="shortcut accent-purple" href="../work_log.html" target="_blank" rel="noopener"><i class="fas fa-clipboard-list"></i>근무일지<span id="work-log-badge" class="badge hidden">N</span></a>
+                    <a class="shortcut accent-slate" href="https://lcw6685837-hue.github.io/job-sheet" target="_blank" rel="noopener"><i class="fas fa-tools"></i>공무일지</a>
+                    <a class="shortcut accent-teal" href="https://lcw6685837-hue.github.io/dryice-order/" target="_blank" rel="noopener"><i class="fas fa-paper-plane"></i>출고요청서</a>
+                </div>
+            </details>
+        </section>
+    </main>
+
+    <p class="footnote">보기 전용 화면입니다 · 데이터 입력은 현장 PC 현황판에서 해주세요</p>
+
+    <script src="script.js?v=20261020_01"></script>
+</body>
+</html>

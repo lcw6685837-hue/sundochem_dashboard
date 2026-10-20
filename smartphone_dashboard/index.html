@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1120">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="생산현황판">
+    <title>SUNDOCHEM 생산현황판 로그인</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link rel="icon" href="../logo.png">
+    <link rel="apple-touch-icon" href="../logo.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20261020_01">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+</head>
+<body class="login-body">
+
+    <div class="login-panel">
+        <div class="login-logo">
+            <img src="../logo.png" alt="SUNDOCHEM Logo">
+            <h1>SUNDOCHEM</h1>
+            <p>생산현황판</p>
+            <span class="badge-mobile"><i class="fas fa-mobile-alt"></i> 모바일 · 보기 전용</span>
+        </div>
+
+        <form id="login-form" novalidate>
+            <div class="field">
+                <label for="login-id">아이디 (이메일)</label>
+                <div class="field-input">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="login-id" placeholder="등록된 이메일" autocomplete="username" inputmode="email" autocapitalize="off">
+                </div>
+            </div>
+            <div class="field">
+                <label for="login-pw">비밀번호</label>
+                <div class="field-input">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-pw" placeholder="비밀번호" autocomplete="current-password">
+                </div>
+            </div>
+
+            <p id="error-msg" class="login-error"></p>
+
+            <button type="submit" id="login-btn" class="login-btn">
+                <span id="btn-text">LOGIN</span>
+                <i id="btn-spinner" class="fas fa-circle-notch fa-spin hidden"></i>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_JNWO5Ke5ZVJDnwP06QW9WsZXNZFv0bc",
+            authDomain: "sundochem-dashboard.firebaseapp.com",
+            databaseURL: "https://sundochem-dashboard-default-rtdb.firebaseio.com",
+            projectId: "sundochem-dashboard",
+            storageBucket: "sundochem-dashboard.firebasestorage.app",
+            messagingSenderId: "360796635566",
+            appId: "1:360796635566:web:d3bf85eb5e5e1574b5483f"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+
+        // 이미 로그인 되어있다면 휴대폰 현황판으로 바로 이동
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) { window.location.replace("dashboard.html"); }
+        });
+
+        const btn = document.getElementById("login-btn");
+        const btnText = document.getElementById("btn-text");
+        const btnSpinner = document.getElementById("btn-spinner");
+        const errorMsg = document.getElementById("error-msg");
+
+        function setLoading(isLoading) {
+            btn.disabled = isLoading;
+            btnText.textContent = isLoading ? "인증 확인 중..." : "LOGIN";
+            btnSpinner.classList.toggle("hidden", !isLoading);
+        }
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            document.querySelector(".login-panel").animate([
+                { transform: "translateX(0)" }, { transform: "translateX(-8px)" },
+                { transform: "translateX(8px)" }, { transform: "translateX(-8px)" },
+                { transform: "translateX(0)" }
+            ], { duration: 350 });
+        }
+
+        document.getElementById("login-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const email = document.getElementById("login-id").value.trim();
+            const pw = document.getElementById("login-pw").value;
+
+            if (!email || !pw) {
+                showError("이메일과 비밀번호를 모두 입력해주세요.");
+                return;
+            }
+
+            errorMsg.textContent = "";
+            setLoading(true);
+
+            // 로그인 성공 시 onAuthStateChanged가 반응하여 자동 이동됨
+            firebase.auth().signInWithEmailAndPassword(email, pw).catch((error) => {
+                setLoading(false);
+                if (error.code === "auth/network-request-failed") {
+                    showError("인터넷 연결을 확인해주세요.");
+                } else {
+                    showError("아이디 또는 비밀번호가 일치하지 않습니다.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
